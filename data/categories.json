@@ -1,0 +1,26 @@
+[
+  {
+    "id": "advertising-media",
+    "name_en": "Advertising Media",
+    "name_zh": "广告介质",
+    "sort_order": 1
+  },
+  {
+    "id": "advertising-panel",
+    "name_en": "Advertising Panel",
+    "name_zh": "广告面板",
+    "sort_order": 2
+  },
+  {
+    "id": "display-stand",
+    "name_en": "Display Stand",
+    "name_zh": "展示架",
+    "sort_order": 3
+  },
+  {
+    "id": "accessory-tools",
+    "name_en": "Accessory Tools",
+    "name_zh": "配件工具",
+    "sort_order": 4
+  }
+]

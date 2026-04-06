@@ -1,37 +1,68 @@
 import React, { useState } from 'react';
 import { Plus, Edit, Trash2, Eye, ArrowLeft, Sparkles, Save, CheckCircle2, X } from 'lucide-react';
+import ImageUploader from '@/src/components/ImageUploader';
 
-const newsList = [
-  { id: 1, title: '金昱广告材料荣获ISO 9001质量管理体系认证', date: '2024-02-15', status: '已发布', views: 342 },
-  { id: 2, title: '2023年产能扩建项目顺利完工，引进国际先进设备', date: '2023-08-10', status: '已发布', views: 521 },
+type NewsLangData = { seoTitle: string; title: string; slug: string; alt: string; content: string };
+type NewsItem = {
+  id: number;
+  date: string;
+  status: string;
+  views: number;
+  images: string[];   // 新闻封面图（多图，第一张为主封面）
+  langData: Record<string, NewsLangData>;
+};
+
+const defaultNews: NewsItem[] = [
+  { id: 1, date: '2024-02-15', status: '已发布', views: 342, images: [], langData: { zh: { seoTitle: '金昱荣获ISO认证', title: '金昱广告材料荣获ISO 9001质量管理体系认证', slug: 'jinyu-iso-9001', alt: 'ISO认证', content: '金昱广告材料成功获得ISO 9001质量管理体系认证。' } } },
+  { id: 2, date: '2023-08-10', status: '已发布', views: 521, images: [], langData: { zh: { seoTitle: '产能扩建完工', title: '2023年产能扩建项目顺利完工，引进国际先进设备', slug: 'capacity-expansion-2023', alt: '新生产线', content: '2023年产能扩建项目顺利完工。' } } },
 ];
 
+const NEWS_STORAGE_KEY = 'jinyu_admin_news';
+
+function loadNews(): NewsItem[] {
+  try {
+    const stored = localStorage.getItem(NEWS_STORAGE_KEY);
+    if (stored) { const p = JSON.parse(stored); if (Array.isArray(p) && p.length > 0) return p; }
+  } catch { /* ignore */ }
+  return defaultNews;
+}
+
+let nextNewsId = 10;
+
 export default function News() {
+  const [newsList, setNewsList] = useState<NewsItem[]>(loadNews);
   const [view, setView] = useState<'list' | 'edit' | 'details'>('list');
   const [activeLang, setActiveLang] = useState('en');
   const [showAIToast, setShowAIToast] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
-  const [deleteModal, setDeleteModal] = useState<typeof newsList[0] | null>(null);
-  const [selectedItem, setSelectedItem] = useState<typeof newsList[0] | null>(null);
-  const [newsDataByLang, setNewsDataByLang] = useState<Record<string, { seoTitle: string, title: string, slug: string, alt: string, content: string }>>({
+  const [deleteModal, setDeleteModal] = useState<NewsItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<NewsItem | null>(null);
+  const [editImages, setEditImages] = useState<string[]>([]);
+  const [newsDataByLang, setNewsDataByLang] = useState<Record<string, NewsLangData>>({
     en: { seoTitle: '', title: '', slug: '', alt: '', content: '' },
     zh: { seoTitle: '', title: '', slug: '', alt: '', content: '' },
     vi: { seoTitle: '', title: '', slug: '', alt: '', content: '' },
     ph: { seoTitle: '', title: '', slug: '', alt: '', content: '' },
   });
 
+  // Persist to localStorage
+  React.useEffect(() => { localStorage.setItem(NEWS_STORAGE_KEY, JSON.stringify(newsList)); }, [newsList]);
+
   React.useEffect(() => {
     if (selectedItem) {
-      setNewsDataByLang(prev => ({
-        ...prev,
-        zh: { 
-          seoTitle: selectedItem.title, 
-          title: selectedItem.title, 
-          slug: selectedItem.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''), 
-          alt: selectedItem.title, 
-          content: '这是新闻的详细内容...' 
-        }
-      }));
+      const allLangs: Record<string, NewsLangData> = {
+        en: { seoTitle: '', title: '', slug: '', alt: '', content: '' },
+        zh: { seoTitle: '', title: '', slug: '', alt: '', content: '' },
+        vi: { seoTitle: '', title: '', slug: '', alt: '', content: '' },
+        ph: { seoTitle: '', title: '', slug: '', alt: '', content: '' },
+      };
+      if (selectedItem.langData) {
+        (['en','zh','vi','ph'] as const).forEach(l => {
+          if (selectedItem.langData[l]) allLangs[l] = { ...selectedItem.langData[l] };
+        });
+      }
+      setNewsDataByLang(allLangs);
+      setEditImages(selectedItem.images || []);
     } else {
       setNewsDataByLang({
         en: { seoTitle: '', title: '', slug: '', alt: '', content: '' },
@@ -39,6 +70,7 @@ export default function News() {
         vi: { seoTitle: '', title: '', slug: '', alt: '', content: '' },
         ph: { seoTitle: '', title: '', slug: '', alt: '', content: '' },
       });
+      setEditImages([]);
     }
   }, [selectedItem]);
 
@@ -104,12 +136,41 @@ export default function News() {
   };
 
   const handleSave = () => {
-    showToast('新闻保存成功');
+    if (selectedItem) {
+      setNewsList(prev => prev.map(n => {
+        if (n.id === selectedItem.id) {
+          return { ...n, images: editImages, langData: { ...n.langData, ...newsDataByLang } };
+        }
+        return n;
+      }));
+      showToast('新闻保存成功');
+    } else {
+      const newId = nextNewsId++;
+      const today = new Date().toISOString().slice(0, 10);
+      const newItem: NewsItem = {
+        id: newId,
+        date: today,
+        status: '已发布',
+        views: 0,
+        images: editImages,
+        langData: { ...newsDataByLang },
+      };
+      setNewsList(prev => [...prev, newItem]);
+      setSelectedItem(newItem);
+      showToast('新闻创建成功');
+    }
   };
 
   const handleDelete = () => {
-    setDeleteModal(null);
-    showToast('新闻删除成功');
+    if (deleteModal) {
+      setNewsList(prev => prev.filter(n => n.id !== deleteModal.id));
+      setDeleteModal(null);
+      showToast('新闻删除成功');
+    }
+  };
+
+  const getDisplayTitle = (news: NewsItem) => {
+    return news.langData?.en?.title || news.langData?.zh?.title || '(无标题)';
   };
 
   if (view === 'edit' || view === 'details') {
@@ -178,11 +239,38 @@ export default function News() {
           <div className="p-6 space-y-6">
             <div className="bg-blue-50 border border-blue-100 text-blue-800 text-sm px-4 py-3 rounded-lg flex items-start">
               <div className="font-medium">
-                当前正在编辑 <span className="font-bold uppercase bg-blue-200 px-1.5 py-0.5 rounded text-blue-900 mx-1">{activeLang}</span> 语言版本。
+                {isReadOnly ? '当前正在查看' : '当前正在编辑'} <span className="font-bold uppercase bg-blue-200 px-1.5 py-0.5 rounded text-blue-900 mx-1">{activeLang}</span> 语言版本。
                 <br className="sm:hidden" />
                 <span className="text-blue-700 mt-1 sm:mt-0 block sm:inline">严格拆分规则：SEO标题、H1大标题、正文详情不共用、不自动截取、不互相填充。</span>
               </div>
             </div>
+
+            {/* 新闻封面图 */}
+            {isReadOnly ? (
+              selectedItem && (selectedItem.images?.length ?? 0) > 0 && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">新闻封面图</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                    {selectedItem.images!.map((img, i) => (
+                      <div key={i} className="relative aspect-square rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                        <img src={img} alt={`封面 ${i + 1}`} className="w-full h-full object-cover" />
+                        {i === 0 && (
+                          <div className="absolute top-1.5 left-1.5 bg-blue-600 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-md shadow-sm">主图</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            ) : (
+              <ImageUploader
+                images={editImages}
+                onChange={setEditImages}
+                max={6}
+                label="新闻封面图"
+                showPrimary={true}
+              />
+            )}
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -263,56 +351,74 @@ export default function News() {
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-gray-50/50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-100">
-              <th className="px-6 py-4 font-semibold">新闻标题</th>
-              <th className="px-6 py-4 font-semibold">发布日期</th>
-              <th className="px-6 py-4 font-semibold">浏览量</th>
-              <th className="px-6 py-4 font-semibold">状态</th>
-              <th className="px-6 py-4 font-semibold">操作</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {newsList.map((news) => (
-              <tr key={news.id} className="hover:bg-gray-50/50 transition-colors group">
-                <td className="px-6 py-4">
-                  <div className="text-sm font-bold text-gray-900">{news.title}</div>
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-500">
-                  {news.date}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-500 flex items-center">
-                  <Eye className="w-4 h-4 mr-1.5 text-gray-400" />
-                  {news.views}
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
-                    news.status === '已发布' 
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                      : 'bg-amber-50 text-amber-700 border-amber-200'
-                  }`}>
-                    {news.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center space-x-2">
-                    <button onClick={() => { setSelectedItem(news); setView('details'); }} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="查看详情">
-                      <Eye className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => { setSelectedItem(news); setView('edit'); }} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="编辑">
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => setDeleteModal(news)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="删除">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden max-w-7xl mx-auto">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse table-fixed">
+            <colgroup>
+              <col style={{width: '80px'}} />
+              <col />
+              <col style={{width: '110px'}} />
+              <col style={{width: '90px'}} />
+              <col style={{width: '90px'}} />
+              <col style={{width: '130px'}} />
+            </colgroup>
+            <thead>
+              <tr className="bg-gray-50/50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-100">
+                <th className="px-4 py-4 font-semibold">封面</th>
+                <th className="px-4 py-4 font-semibold">新闻标题</th>
+                <th className="px-4 py-4 font-semibold">发布日期</th>
+                <th className="px-4 py-4 font-semibold">浏览量</th>
+                <th className="px-4 py-4 font-semibold">状态</th>
+                <th className="px-4 py-4 font-semibold">操作</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {newsList.map((news) => (
+                <tr key={news.id} className="hover:bg-gray-50/50 transition-colors group">
+                  <td className="px-4 py-4">
+                    {news.images?.[0] ? (
+                      <img src={news.images[0]} alt={getDisplayTitle(news)} className="w-14 h-10 object-cover rounded-lg border border-gray-200" />
+                    ) : (
+                      <div className="w-14 h-10 bg-gray-100 rounded-lg border border-dashed border-gray-200 flex items-center justify-center text-gray-300 text-xs">无图</div>
+                    )}
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="text-sm font-bold text-gray-900 truncate">{getDisplayTitle(news)}</div>
+                  </td>
+                  <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">
+                    {news.date}
+                  </td>
+                  <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">
+                    <div className="flex items-center"><Eye className="w-3.5 h-3.5 mr-1 text-gray-400 shrink-0" />{news.views}</div>
+                  </td>
+                  <td className="px-4 py-4">
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${news.status === '已发布' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
+                      {news.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="flex items-center space-x-1">
+                      <button onClick={() => { setSelectedItem(news); setView('details'); }} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="查看">
+                        <Eye className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => { setSelectedItem(news); setView('edit'); }} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="编辑">
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => setDeleteModal(news)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="删除">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {newsList.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400 text-sm">暂无新闻数据</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
 
@@ -327,7 +433,7 @@ export default function News() {
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">确认删除新闻？</h3>
               <p className="text-sm text-gray-500">
-                您确定要删除新闻 <span className="font-semibold text-gray-900">"{deleteModal.title}"</span> 吗？此操作无法撤销。
+                您确定要删除新闻 <span className="font-semibold text-gray-900">"{getDisplayTitle(deleteModal)}"</span> 吗？此操作无法撤销。
               </p>
             </div>
             <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex justify-center gap-3">

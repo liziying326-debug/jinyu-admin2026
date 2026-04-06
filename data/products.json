@@ -1,0 +1,2024 @@
+[
+  {
+    "id": "self-adhesive-vinyl",
+    "name_en": "Self Adhesive Vinyl (SAV)",
+    "name_zh": "自粘乙烯基车贴",
+    "name_vi": "Decal dán xe tự dính",
+    "name_tl": "Self Adhesive Vinyl",
+    "description_en": "High quality Self Adhesive Vinyl (SAV) for advertising and display applications.",
+    "description_zh": "优质Self Adhesive Vinyl (SAV)，适用于广告展示应用。",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "SAV Series",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Model",
+        "v_en": "SAV120/140 / SAV160 / SAV-Black / SAV140 Tr"
+      },
+      {
+        "k_en": "Release Paper",
+        "v_en": "120-160g ± 5g"
+      },
+      {
+        "k_en": "Film Thickness",
+        "v_en": "80-100 micron ± 5 micron"
+      },
+      {
+        "k_en": "Surface",
+        "v_en": "Glossy / Matte / Super Glossy"
+      },
+      {
+        "k_en": "Adhesive",
+        "v_en": "Semi removable / Removable / Black Glue"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1.07/1.27/1.37/1.52m × 50m"
+      },
+      {
+        "k_en": "Ink Type",
+        "v_en": "Eco solvent / Solvent / Latex"
+      },
+      {
+        "k_en": "Package",
+        "v_en": "Export Carton"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0,
+    "features_en": [
+      "High color reproduction with eco-solvent and solvent inks",
+      "Smooth removable adhesive for easy application and repositioning",
+      "Available in glossy and matte surface finishes",
+      "Suitable for vehicle wraps, window graphics, and signage",
+      "Excellent outdoor durability and UV resistance",
+      "Consistent film thickness for professional print results"
+    ]
+  },
+  {
+    "id": "transparent-self-adhesive",
+    "name_en": "Transparent Self Adhesive Vinyl",
+    "name_zh": "透明自粘乙烯基",
+    "name_vi": "Cao keo tự dính trong suốt",
+    "name_tl": "Transparent Self Adhesive Vinyl",
+    "description_en": "High quality Transparent Self Adhesive Vinyl for advertising and display applications.",
+    "description_zh": "??????????,???????????",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "SAV-Transparent",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Release Paper",
+        "v_en": "140g ± 5g"
+      },
+      {
+        "k_en": "Film Thickness",
+        "v_en": "90 micron ± 5 micron"
+      },
+      {
+        "k_en": "Surface",
+        "v_en": "Glossy"
+      },
+      {
+        "k_en": "Transparency",
+        "v_en": "Crystal Clear"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1.07/1.27/1.37/1.52m × 50m"
+      },
+      {
+        "k_en": "Ink Type",
+        "v_en": "Eco solvent / Solvent"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Window Graphics, See-through Applications"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "polymeric-self-adhesive",
+    "name_en": "Polymeric Self Adhesive Vinyl",
+    "name_zh": "高分子自粘乙烯基",
+    "name_vi": "Cao keo tự dính Polymeric",
+    "name_tl": "Polymeric Self Adhesive Vinyl",
+    "description_en": "High quality Polymeric Self Adhesive Vinyl for advertising and display applications.",
+    "description_zh": "优质Polymeric Self Adhesive Vinyl，适用于广告展示应用。",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "SAV-Polymeric",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Release Paper",
+        "v_en": "140g ± 5g"
+      },
+      {
+        "k_en": "Film Thickness",
+        "v_en": "100 micron ± 5 micron"
+      },
+      {
+        "k_en": "Durability",
+        "v_en": "5-7 Years Outdoor"
+      },
+      {
+        "k_en": "Surface",
+        "v_en": "Glossy / Matte"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1.37/1.52m × 50m"
+      },
+      {
+        "k_en": "Ink Type",
+        "v_en": "Eco solvent / Solvent"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "pet-photo-paper",
+    "name_en": "PET Photo Paper / PP Banner",
+    "name_zh": "PET相纸/PP横幅布",
+    "name_vi": "Giấy ảnh PET / Bạt PP",
+    "name_tl": "PET Photo Paper / PP Banner",
+    "description_en": "High quality PET Photo Paper / PP Banner for advertising and display applications.",
+    "description_zh": "优质PET Photo Paper / PP Banner，适用于广告展示应用。",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "Photo Paper / PP Banner",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Weight",
+        "v_en": "120-240 gsm"
+      },
+      {
+        "k_en": "Surface",
+        "v_en": "Glossy / Matte"
+      },
+      {
+        "k_en": "Ink Type",
+        "v_en": "Eco solvent / Latex / UV"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "0.914/1.07/1.27/1.52m × 50m/100m"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Photo printing, Banners"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "cold-lamination-film",
+    "name_en": "Cold Lamination Film",
+    "name_zh": "冷裱膜",
+    "name_vi": "Màng lamination lạnh",
+    "name_tl": "Cold Lamination Film",
+    "description_en": "High quality Cold Lamination Film for advertising and display applications.",
+    "description_zh": "优质Cold Lamination Film，适用于广告展示应用。",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "CLF Series",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Model",
+        "v_en": "CLF 100 / CLF 120 / 3D Polymeric"
+      },
+      {
+        "k_en": "Thickness",
+        "v_en": "100-150 micron"
+      },
+      {
+        "k_en": "Surface",
+        "v_en": "Glossy / Matte"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1.05/1.27/1.37/1.52m × 50m"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Protect prints, 3D Effect"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0,
+    "features_en": [
+      "Multiple surface finishes for different effects",
+      "Soft touch matte option for premium feel",
+      "Crystal clear adhesive for color accuracy",
+      "Easy to apply with laminator or by hand",
+      "Suitable for photos, posters, menus, and display graphics",
+      "Water and tear resistant"
+    ]
+  },
+  {
+    "id": "one-way-vision",
+    "name_en": "One Way Vision ",
+    "name_zh": "单向透视膜",
+    "name_vi": "Tầm nhìn một chiều",
+    "name_tl": " Isang Daan na Pananaw",
+    "description_en": "one way vision material is typically applied for indoor and outdoor signage and wide-format digital printing such as vehicle advertising, irregular planes, and outdoor durable signage and product labels, especially for one-way vision window films.",
+    "description_zh": "单向透视膜通常应用于室内外标识、大幅面数码打印场景（如车辆广告、不规则平面、户外耐用标识及产品标签），尤其适用于单向透视窗膜。",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "One Way Vision",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Hole Size",
+        "v_en": "1.6mm / 2.0mm / 3.0mm",
+        "k_zh": "Hole Size",
+        "v_zh": "1.6mm / 2.0mm / 3.0mm",
+        "k_vi": "Hole Size",
+        "v_vi": "1.6mm / 2.0mm / 3.0mm",
+        "k_tl": "Hole Size",
+        "v_tl": "1.6mm / 2.0mm / 3.0mm"
+      },
+      {
+        "k_en": "Film Thickness",
+        "v_en": "140-180 micron",
+        "k_zh": "Film Thickness",
+        "v_zh": "140-180 micron",
+        "k_vi": "Film Thickness",
+        "v_vi": "140-180 micron",
+        "k_tl": "Film Thickness",
+        "v_tl": "140-180 micron"
+      },
+      {
+        "k_en": "Transmittance",
+        "v_en": "60% / 65% / 70%",
+        "k_zh": "Transmittance",
+        "v_zh": "60% / 65% / 70%",
+        "k_vi": "Transmittance",
+        "v_vi": "60% / 65% / 70%",
+        "k_tl": "Transmittance",
+        "v_tl": "60% / 65% / 70%"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1.27/1.52/1.8/2.3m × 50m",
+        "k_zh": "尺寸",
+        "v_zh": "1.27/1.52/1.8/2.3m × 50m",
+        "k_vi": "Kích thước",
+        "v_vi": "1.27/1.52/1.8/2.3m × 50m",
+        "k_tl": "Sukat",
+        "v_tl": "1.27/1.52/1.8/2.3m × 50m"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Vehicle Windows, Glass Surfaces",
+        "k_zh": "Application",
+        "v_zh": "Vehicle Windows, Glass Surfaces",
+        "k_vi": "Application",
+        "v_vi": "Vehicle Windows, Glass Surfaces",
+        "k_tl": "Application",
+        "v_tl": "Vehicle Windows, Glass Surfaces"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [
+      "https://picsum.photos/seed/one-way-vision/100/100"
+    ],
+    "main_image": 0,
+    "description_vi": "Vật liệu tầm nhìn một chiều thường được sử dụng cho biển hiệu trong nhà và ngoài trời, in kỹ thuật số khổ lớn như quảng cáo trên xe, bề mặt không đều, biển hiệu bền ngoài trời và nhãn sản phẩm, đặc biệt là phim cửa sổ tầm nhìn một chiều.",
+    "description_tl": "Ang materyal na isang daan na pananaw ay karaniwang ginagamit para sa mga karatula sa loob at labas ng bahay at malaking-format na digital printing tulad ng advertising sa sasakyan, hindi regular na mga eroplano, at matibay na mga karatula sa labas at mga label ng produkto, lalo na para sa mga window film na isang daan na pananaw.\n",
+    "features_en": [
+      "50/50 perforation ratio for optimal visibility balance",
+      "Vibrant external graphics while maintaining inside view",
+      "Suitable for vehicle windows and glass facades",
+      "UV resistant for long-lasting outdoor performance",
+      "Easy to apply and remove without residue",
+      "Ideal for advertising, privacy, and branding",
+      "777777"
+    ],
+    "features_zh": [
+      "高粘度、耐候性强",
+      "适合户外广告使用",
+      "持久耐用不易褪色"
+    ],
+    "features_vi": [
+      "Độ bám dính cao, chịu thời tiết tốt",
+      "Phù hợp quảng cáo ngoài trời",
+      "Bền bỉ, không phai màu"
+    ],
+    "features_tl": [
+      "High tack, weather resistant",
+      "Suitable for outdoor advertising",
+      "Durable and long-lasting"
+    ]
+  },
+  {
+    "id": "cutting-vinyl",
+    "name_en": "Cutting Vinyl",
+    "name_zh": "刻字膜/刻字纸",
+    "name_vi": "Decal cắt vinyl",
+    "name_tl": "Cutting Vinyl",
+    "description_en": "High quality Cutting Vinyl for advertising and display applications.",
+    "description_zh": "优质Cutting Vinyl，适用于广告展示应用。",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "Cutting Vinyl",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Model",
+        "v_en": "Cutting Vinyl 120 / 140"
+      },
+      {
+        "k_en": "Release Paper",
+        "v_en": "120g / 140g ± 5g"
+      },
+      {
+        "k_en": "Film Thickness",
+        "v_en": "80-100 micron"
+      },
+      {
+        "k_en": "Surface",
+        "v_en": "Glossy / Matte"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1.05/1.27/1.52m × 50m"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Letter Cutting, Signs"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0,
+    "features_en": [
+      "Precise cutting performance with low-force plotters",
+      "Easy weeding with minimal tearing",
+      "Strong adhesion to glass, metal, and rigid substrates",
+      "Available in 60+ colors including metallics and fluorescents",
+      "Suitable for lettering, logos, and decorative applications",
+      "3–7 year outdoor durability"
+    ]
+  },
+  {
+    "id": "reflective-sheeting",
+    "name_en": "Reflective Sheeting",
+    "name_zh": "反光贴膜",
+    "name_vi": "Màng phản quang",
+    "name_tl": "Reflective Sheeting",
+    "description_en": "High quality Reflective Sheeting for advertising and display applications.",
+    "description_zh": "优质Reflective Sheeting，适用于广告展示应用。",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "Reflective Series",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Type",
+        "v_en": "PVC Reflective / PET Reflective"
+      },
+      {
+        "k_en": "Color",
+        "v_en": "White / Red / Yellow / Blue / Green"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1.05/1.24/1.35/1.52/3.15m × 50m"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Traffic Signs, Safety Signs"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "frosted-glitter-film",
+    "name_en": "Frosted / Glitter Film",
+    "name_zh": "磨砂/闪粉膜",
+    "name_vi": "Màng Frosted / Glitter",
+    "name_tl": "Frosted / Glitter Film",
+    "description_en": "High quality Frosted / Glitter Film for advertising and display applications.",
+    "description_zh": "优质Frosted / Glitter Film，适用于广告展示应用。",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "Frosted / Glitter",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Type",
+        "v_en": "Frosted / Grey Glitter / Color Glitter"
+      },
+      {
+        "k_en": "Release Paper",
+        "v_en": "120g ± 5g"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Window Decoration, Glass Frosting"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "backlit-flex-banner",
+    "name_en": "Backlit Flex Banner",
+    "name_zh": "背灯布/灯箱布",
+    "name_vi": "Bạt Hiflex dán đèn",
+    "name_tl": "Backlit Flex Banner",
+    "description_en": "High quality Backlit Flex Banner for advertising and display applications.",
+    "description_zh": "优质Backlit Flex Banner，适用于广告展示应用。",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "Backlit",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Weight",
+        "v_en": "280-440 gsm"
+      },
+      {
+        "k_en": "Material",
+        "v_en": "PVC + PET Grid"
+      },
+      {
+        "k_en": "Surface",
+        "v_en": "Glossy"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1.6/1.9/2.3/2.5/2.8/3.2/3.5/5m × 50m"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Light Box, Backlit Signage"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "frontlit-flex-banner",
+    "name_en": "Frontlit Flex Banner",
+    "name_zh": "前打布/普通灯布",
+    "name_vi": "Bạt Hiflex thường",
+    "name_tl": "Frontlit Flex Banner",
+    "description_en": "High quality Frontlit Flex Banner for advertising and display applications.",
+    "description_zh": "优质Frontlit Flex Banner，适用于广告展示应用。",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "Frontlit",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Weight",
+        "v_en": "280-510 gsm"
+      },
+      {
+        "k_en": "Material",
+        "v_en": "PVC Coated"
+      },
+      {
+        "k_en": "Surface",
+        "v_en": "Glossy / Matte"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1.6/1.9/2.2/2.5/2.8/3.2/3.5/5m × 50m"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Banners, Billboards, Construction Hoarding"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "coated-flex-banner",
+    "name_en": "Coated Flex Banner",
+    "name_zh": "涂布刀刮布",
+    "name_vi": "Bạt tráng keo",
+    "name_tl": "Coated Flex Banner",
+    "description_en": "High quality Coated Flex Banner for advertising and display applications.",
+    "description_zh": "优质Coated Flex Banner，适用于广告展示应用。",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "Coated",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Weight",
+        "v_en": "280-440 gsm"
+      },
+      {
+        "k_en": "Surface",
+        "v_en": "Glossy"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1.6/1.9/2.3/2.5/2.8/3.2m × 50m"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "High Quality Printing, UV Printing"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "double-side-flex",
+    "name_en": "Double Side Flex Banner",
+    "name_zh": "双面喷绘布",
+    "name_vi": "Bạt hai mặt",
+    "name_tl": "Double Side Flex Banner",
+    "description_en": "High quality Double Side Flex Banner for advertising and display applications.",
+    "description_zh": "优质Double Side Flex Banner，适用于广告展示应用。",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "Double Side",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Weight",
+        "v_en": "300-450 gsm"
+      },
+      {
+        "k_en": "Surface",
+        "v_en": "Glossy Both Sides"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "2.5/3.2/5m × 50m"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Hangzhou Flags, Store Displays"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "pvc-tarpaulin",
+    "name_en": "PVC Tarpaulin",
+    "name_zh": "PVC防水布/篷布",
+    "name_vi": "Bạt PVC",
+    "name_tl": "PVC Tarpaulin",
+    "description_en": "High quality PVC Tarpaulin for advertising and display applications.",
+    "description_zh": "优质PVC Tarpaulin，适用于广告展示应用。",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "Tarpaulin",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Weight",
+        "v_en": "280-650 gsm"
+      },
+      {
+        "k_en": "Material",
+        "v_en": "PVC Coated Polyester"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1.6/1.9/2.3/2.5/2.8/3.2/5m × 50m"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Truck Covers, Tents, Outdoor Protection"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "wall-paper-canvas",
+    "name_en": "Wall Paper / Canvas",
+    "name_zh": "墙纸/油画布",
+    "name_vi": "Giấy dán tường / Canvas",
+    "name_tl": "Wall Paper / Canvas",
+    "description_en": "High quality Wall Paper / Canvas for advertising and display applications.",
+    "description_zh": "优质Wall Paper / Canvas，适用于广告展示应用。",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "Wall Paper / Canvas",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Type",
+        "v_en": "Wall Paper / Canvas Cotton / Canvas Fiber"
+      },
+      {
+        "k_en": "Weight",
+        "v_en": "220-320 gsm"
+      },
+      {
+        "k_en": "Surface",
+        "v_en": "Matte / Glossy"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "0.914/1.07/1.27/1.52m × 30/50/100m"
+      },
+      {
+        "k_en": "Ink Type",
+        "v_en": "Eco solvent / Water base / UV / Sublimation"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Wall Decoration, Art Printing"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "flag-fabric",
+    "name_en": "Flag Fabric",
+    "name_zh": "旗帜布",
+    "name_vi": "Vải làm cờ",
+    "name_tl": "Flag Fabric",
+    "description_en": "High quality Flag Fabric for advertising and display applications.",
+    "description_zh": "优质Flag Fabric，适用于广告展示应用。",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "Flag Fabric",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Type",
+        "v_en": "Flag / Knitted / Stain / Mesh"
+      },
+      {
+        "k_en": "Weight",
+        "v_en": "80-130 gsm"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1.27/1.52/1.62/3.2m × 100m"
+      },
+      {
+        "k_en": "Ink Type",
+        "v_en": "Eco solvent / Sublimation"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Flags, Banners, Event Displays"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "reflective-flex-banner",
+    "name_en": "Reflective Flex Banner",
+    "name_zh": "反光柔性横幅",
+    "name_vi": "Bạt phản quang",
+    "name_tl": "Reflective Flex Banner",
+    "description_en": "High quality Reflective Flex Banner for advertising and display applications.",
+    "description_zh": "优质Reflective Flex Banner，适用于广告展示应用。",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "RFB Series",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Model",
+        "v_en": "RFB 460 / RFB 510"
+      },
+      {
+        "k_en": "Fabric",
+        "v_en": "200×500D / 500×500D"
+      },
+      {
+        "k_en": "Color",
+        "v_en": "White"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1.05/1.24/1.35/1.55/3.15m × 50m"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Traffic Signs, Safety Signs"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "soft-film-reflective",
+    "name_en": "Soft Film / Reflective Sticker",
+    "name_zh": "软膜/反光贴",
+    "name_vi": "Phim mềm / Decal phản quang",
+    "name_tl": "Soft Film / Reflective Sticker",
+    "description_en": "High quality Soft Film / Reflective Sticker for advertising and display applications.",
+    "description_zh": "优质Soft Film / Reflective Sticker，适用于广告展示应用。",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "RS Series",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Model",
+        "v_en": "RS-380 / Reflective Sticker"
+      },
+      {
+        "k_en": "Color",
+        "v_en": "White / Red / Yellow / Blue / Green / Orange"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1.05/1.22/1.35/1.55m × 50m / 1.27/1.52/1.62/3.2m × 100m"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Signs, Temporary Work Zone Signs"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "heat-transfer-vinyl",
+    "name_en": "Heat Transfer Vinyl",
+    "name_zh": "热转印膜",
+    "name_vi": "Màng chuyển nhiệt",
+    "name_tl": "Heat Transfer Vinyl",
+    "description_en": "High quality Heat Transfer Vinyl for advertising and display applications.",
+    "description_zh": "优质Heat Transfer Vinyl，适用于广告展示应用。",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "HTV Series",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Type",
+        "v_en": "PVC / PU / Flock / Hologram / Glitter / Metallic"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1.05/1.27m × 50m"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "T-Shirt Printing, Textile Transfer"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "carbon-fiber-vinyl",
+    "name_en": "Carbon Fiber Vinyl",
+    "name_zh": "碳纤维膜",
+    "name_vi": "Decal sợi carbon",
+    "name_tl": "Carbon Fiber Vinyl",
+    "description_en": "High quality Carbon Fiber Vinyl for advertising and display applications.",
+    "description_zh": "优质Carbon Fiber Vinyl，适用于广告展示应用。",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "Carbon Fiber",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Release Paper",
+        "v_en": "140g ± 5g"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1.27/1.52m × 50m"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Car Wrapping, Decoration"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "acrylic-display-products",
+    "name_en": "Acrylic Display Products",
+    "name_zh": "亚克力展示制品",
+    "name_vi": "Sản phẩm acrylic trưng bày",
+    "name_tl": "Acrylic Display Products",
+    "description_en": "High quality Acrylic Display Products for advertising and display applications.",
+    "description_zh": "优质Acrylic Display Products，适用于广告展示应用。",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "Acrylic Display",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Type",
+        "v_en": "Acrylic Display / Brochure Holder / Display Frame"
+      },
+      {
+        "k_en": "Material",
+        "v_en": "PMMA Acrylic"
+      },
+      {
+        "k_en": "Color",
+        "v_en": "Clear / Black / White"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "A4 / A5 / A6 / Custom"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "POS Displays, Brochure Stands"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "pvc-foam-board",
+    "name_en": "PVC Foam Board",
+    "name_zh": "PVC发泡板",
+    "name_vi": "Tấm Formex / PVC Foam",
+    "name_tl": "PVC Foam Board",
+    "description_en": "High quality PVC Foam Board for advertising and display applications.",
+    "description_zh": "优质PVC Foam Board，适用于广告展示应用。",
+    "category_id": "advertising-panel",
+    "price": "",
+    "model_number": "PVC Foam",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Thickness",
+        "v_en": "1-19mm"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1220×2440mm / 1560×3050mm / 2050×3050mm"
+      },
+      {
+        "k_en": "Density",
+        "v_en": "0.45-0.75 g/cm³"
+      },
+      {
+        "k_en": "Surface",
+        "v_en": "Smooth / Texture"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Sign Board, Exhibition, Cabinet"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0,
+    "features_en": [
+      "Ultra-lightweight for easy handling and installation",
+      "Rigid and flat for professional display mounting",
+      "Smooth surface for direct UV printing",
+      "Easy to cut with standard tools",
+      "Moisture and humidity resistant",
+      "Available in white, black, and custom colors"
+    ]
+  },
+  {
+    "id": "acrylic-sheet",
+    "name_en": "Acrylic Sheet",
+    "name_zh": "亚克力板",
+    "name_vi": "Tấm Acrylic",
+    "name_tl": "Acrylic Sheet",
+    "description_en": "High quality Acrylic Sheet for advertising and display applications.",
+    "description_zh": "优质Acrylic Sheet，适用于广告展示应用。",
+    "category_id": "advertising-panel",
+    "price": "",
+    "model_number": "Acrylic",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Type",
+        "v_en": "Cast / Extruded"
+      },
+      {
+        "k_en": "Thickness",
+        "v_en": "2-20mm"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1220×1830mm / 1220×2440mm"
+      },
+      {
+        "k_en": "Color",
+        "v_en": "Clear / White / Color"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Signage, Display, Protection"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0,
+    "features_en": [
+      "Optical-grade clarity with 92% light transmission",
+      "Half the weight of glass with superior impact resistance",
+      "Available in cast and extruded grades",
+      "Easy to machine, bond, and form",
+      "Available in clear, white, opal, and 100+ colors",
+      "UV resistant for long-term color stability"
+    ]
+  },
+  {
+    "id": "aluminum-composite-panel",
+    "name_en": "Aluminum Composite Panel (ACP)",
+    "name_zh": "铝塑板",
+    "name_vi": "Tấm Alu Composite",
+    "name_tl": "Aluminum Composite Panel",
+    "description_en": "High quality Aluminum Composite Panel (ACP) for advertising and display applications.",
+    "description_zh": "优质Aluminum Composite Panel (ACP)，适用于广告展示应用。",
+    "category_id": "advertising-panel",
+    "price": "",
+    "model_number": "ACP",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Thickness",
+        "v_en": "2-6mm"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1220×2440mm / 1250×3050mm"
+      },
+      {
+        "k_en": "Aluminum",
+        "v_en": "0.1-0.5mm"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Building Cladding, Signage"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0,
+    "features_en": [
+      "Exceptional flatness and rigidity",
+      "Lightweight—typically 4–6 kg/m²",
+      "PVDF coating for long-term weathering resistance",
+      "Available in 100+ standard and custom colors",
+      "Easy to rout, cut, fold, and install",
+      "Suitable for outdoor signs, fascias, and cladding"
+    ]
+  },
+  {
+    "id": "pp-hollow-sheet",
+    "name_en": "PP Hollow Sheet",
+    "name_zh": "PP中空板",
+    "name_vi": "Tấm PP rỗng",
+    "name_tl": "PP Hollow Sheet",
+    "description_en": "High quality PP Hollow Sheet for advertising and display applications.",
+    "description_zh": "优质PP Hollow Sheet，适用于广告展示应用。",
+    "category_id": "advertising-panel",
+    "price": "",
+    "model_number": "PP Hollow",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Thickness",
+        "v_en": "2-12mm"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1220×2440mm / 1560×3050mm"
+      },
+      {
+        "k_en": "Color",
+        "v_en": "White / Color"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Packaging, Sign Board, Construction"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0,
+    "features_en": [
+      "Hollow corrugated construction for rigidity with light weight",
+      "Fully waterproof and weather resistant",
+      "Reusable and recyclable",
+      "Easy to insert H-stakes for yard signs",
+      "Printable via screen, UV inkjet, and digital printing",
+      "Suitable for outdoor temporary signage"
+    ]
+  },
+  {
+    "id": "pvc-rigid-sheet",
+    "name_en": "PVC Rigid Sheet",
+    "name_zh": "PVC硬板",
+    "name_vi": "Tấm PVC cứng",
+    "name_tl": "PVC Rigid Sheet",
+    "description_en": "High quality PVC Rigid Sheet for advertising and display applications.",
+    "description_zh": "优质PVC Rigid Sheet，适用于广告展示应用。",
+    "category_id": "advertising-panel",
+    "price": "",
+    "model_number": "PVC Rigid",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Thickness",
+        "v_en": "1-20mm"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1220×2440mm"
+      },
+      {
+        "k_en": "Color",
+        "v_en": "White / Color / Transparent"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Chemical Tanks, Construction"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "abs-sheet",
+    "name_en": "ABS Sheet",
+    "name_zh": "ABS板",
+    "name_vi": "Tấm ABS",
+    "name_tl": "ABS Sheet",
+    "description_en": "High quality ABS Sheet for advertising and display applications.",
+    "description_zh": "优质ABS Sheet，适用于广告展示应用。",
+    "category_id": "advertising-panel",
+    "price": "",
+    "model_number": "ABS",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Thickness",
+        "v_en": "1-12mm"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1220×2440mm"
+      },
+      {
+        "k_en": "Color",
+        "v_en": "White / Black / Color"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Automotive, Refrigerators, Sanitary"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "kt-board-laminated",
+    "name_en": "KT Board / Laminated Board",
+    "name_zh": "KT板/复合板",
+    "name_vi": "Tấm KT / Foam Board",
+    "name_tl": "KT Board",
+    "description_en": "High quality KT Board / Laminated Board for advertising and display applications.",
+    "description_zh": "优质KT Board / Laminated Board，适用于广告展示应用。",
+    "category_id": "advertising-panel",
+    "price": "",
+    "model_number": "KT Board",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Thickness",
+        "v_en": "3-15mm"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1220×2440mm / Custom"
+      },
+      {
+        "k_en": "Surface",
+        "v_en": "Paper Laminated"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Sign Board, Exhibition Display"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "abs-double-color",
+    "name_en": "ABS Double Color Sheet",
+    "name_zh": "ABS双色板",
+    "name_vi": "Tấm ABS hai màu",
+    "name_tl": "ABS Double Color Sheet",
+    "description_en": "High quality ABS Double Color Sheet for advertising and display applications.",
+    "description_zh": "优质ABS Double Color Sheet，适用于广告展示应用。",
+    "category_id": "advertising-panel",
+    "price": "",
+    "model_number": "ABS Double Color",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Size",
+        "v_en": "1220×2440mm / 1220×1830mm"
+      },
+      {
+        "k_en": "Color",
+        "v_en": "White+Black / Yellow+White / Red+White"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Sign Board, Index Plate, Data Plate"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "x-stand-roll",
+    "name_en": "X Stand / Roll Up Stand",
+    "name_zh": "X展架/易拉宝",
+    "name_vi": "Standee X / Roll Up",
+    "name_tl": "X Stand / Roll Up Stand",
+    "description_en": "High quality X Stand / Roll Up Stand for advertising and display applications.",
+    "description_zh": "优质X Stand / Roll Up Stand，适用于广告展示应用。",
+    "category_id": "display-stand",
+    "price": "",
+    "model_number": "X-Banner / Roll Up",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Type",
+        "v_en": "X Stand / Roll Up / Lgate Banner"
+      },
+      {
+        "k_en": "Width",
+        "v_en": "60/80/85/100/120cm"
+      },
+      {
+        "k_en": "Height",
+        "v_en": "160/180/200/210cm"
+      },
+      {
+        "k_en": "Material",
+        "v_en": "Aluminum / Steel"
+      },
+      {
+        "k_en": "Package",
+        "v_en": "Oxford Bag / Carton"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Trade Shows, Retail Displays"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "pop-up-stand",
+    "name_en": "Pop Up Stand",
+    "name_zh": "Pop Up展架",
+    "name_vi": "Standee Pop Up",
+    "name_tl": "Pop Up Stand",
+    "description_en": "High quality Pop Up Stand for advertising and display applications.",
+    "description_zh": "优质Pop Up Stand，适用于广告展示应用。",
+    "category_id": "display-stand",
+    "price": "",
+    "model_number": "Pop Up",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Size",
+        "v_en": "3×3 / 3×4 / 3×5 Curved / Straight"
+      },
+      {
+        "k_en": "Material",
+        "v_en": "Aluminum Frame + Fabric Graphic"
+      },
+      {
+        "k_en": "Accessory",
+        "v_en": "LED Lights, Reception Desk"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Exhibition, Conference"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "promotion-table",
+    "name_en": "Promotion Table",
+    "name_zh": "促销台/咨询台",
+    "name_vi": "Bàn xúc tiến",
+    "name_tl": "Promotion Table",
+    "description_en": "High quality Promotion Table for advertising and display applications.",
+    "description_zh": "优质Promotion Table，适用于广告展示应用。",
+    "category_id": "display-stand",
+    "price": "",
+    "model_number": "Promotion Table",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Material",
+        "v_en": "Aluminum / Plastic"
+      },
+      {
+        "k_en": "Color",
+        "v_en": "Black / White / Custom"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "Standard / Custom"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Events, Promotions, Reception"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "flag-banner-flying",
+    "name_en": "Flag Banner / Flying Banner",
+    "name_zh": "刀旗/羽毛旗",
+    "name_vi": "Cờ / Banner bay",
+    "name_tl": "Flag Banner / Flying Banner",
+    "description_en": "High quality Flag Banner / Flying Banner for advertising and display applications.",
+    "description_zh": "优质Flag Banner / Flying Banner，适用于广告展示应用。",
+    "category_id": "display-stand",
+    "price": "",
+    "model_number": "Flag / Flying Banner",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Type",
+        "v_en": "Straight / Curved / Feather / Teardrop"
+      },
+      {
+        "k_en": "Height",
+        "v_en": "210cm (unlimited width)"
+      },
+      {
+        "k_en": "Material",
+        "v_en": "Aluminum / Fiberglass Pole"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Outdoor Events, Storefront"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "banner-stand-snap",
+    "name_en": "Banner Stand / Snap Frame",
+    "name_zh": "注水旗杆/广告牌架",
+    "name_vi": "Banner đứng / Khung Snap",
+    "name_tl": "Banner Stand / Snap Frame",
+    "description_en": "High quality Banner Stand / Snap Frame for advertising and display applications.",
+    "description_zh": "优质Banner Stand / Snap Frame，适用于广告展示应用。",
+    "category_id": "display-stand",
+    "price": "",
+    "model_number": "Banner Stand",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Type",
+        "v_en": "Water Base / Cross Base / Snap Frame"
+      },
+      {
+        "k_en": "Frame Size",
+        "v_en": "A0 / A1 / A2"
+      },
+      {
+        "k_en": "Material",
+        "v_en": "Aluminum / Plastic"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Indoor Advertising, Menus"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "led-light-box",
+    "name_en": "LED Light Box",
+    "name_zh": "LED灯箱",
+    "name_vi": "Hộp đèn LED",
+    "name_tl": "LED Light Box",
+    "description_en": "High quality LED Light Box for advertising and display applications.",
+    "description_zh": "优质LED Light Box，适用于广告展示应用。",
+    "category_id": "display-stand",
+    "price": "",
+    "model_number": "LED Light Box",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Type",
+        "v_en": "Snap Frame / Wall Mounted / Hanging"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "A0 / A1 / A2 / Custom"
+      },
+      {
+        "k_en": "Light Source",
+        "v_en": "LED Strip"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Retail, Signage, Illumination"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "display-frame-poster",
+    "name_en": "Display Frame / Poster Stand",
+    "name_zh": "展示架/画框",
+    "name_vi": "Khung trưng bày",
+    "name_tl": "Display Frame",
+    "description_en": "High quality Display Frame / Poster Stand for advertising and display applications.",
+    "description_zh": "优质Display Frame / Poster Stand，适用于广告展示应用。",
+    "category_id": "display-stand",
+    "price": "",
+    "model_number": "Display Frame",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Type",
+        "v_en": "Floor / Wall Mounted / Circular Corner"
+      },
+      {
+        "k_en": "Material",
+        "v_en": "Aluminum / Steel"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Displays, Exhibitions"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "led-module",
+    "name_en": "LED Module",
+    "name_zh": "LED模组",
+    "name_vi": "Module LED",
+    "name_tl": "LED Module",
+    "description_en": "High quality LED Module for advertising and display applications.",
+    "description_zh": "优质LED Module，适用于广告展示应用。",
+    "category_id": "accessory-tools",
+    "price": "",
+    "model_number": "LED Module",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Chip Model",
+        "v_en": "2835 / 5050 / 5630"
+      },
+      {
+        "k_en": "LED Quantity",
+        "v_en": "3 / 4 / 5 LEDs per module"
+      },
+      {
+        "k_en": "Power",
+        "v_en": "0.25W / 0.5W / 1W"
+      },
+      {
+        "k_en": "Voltage",
+        "v_en": "DC 12V / 24V"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Channel Letters, Light Boxes"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0,
+    "features_en": [
+      "Multiple chip configurations for different brightness levels",
+      "DC 12V safe low-voltage operation",
+      "IP65 waterproof option for outdoor applications",
+      "Long lifespan—50,000+ hours",
+      "Available in all standard and custom colors",
+      "Injection-molded housing for impact resistance"
+    ]
+  },
+  {
+    "id": "led-flexible-strip",
+    "name_en": "LED Flexible Strip",
+    "name_zh": "LED软灯带",
+    "name_vi": "Dải LED dẻo",
+    "name_tl": "LED Flexible Strip",
+    "description_en": "High quality LED Flexible Strip for advertising and display applications.",
+    "description_zh": "优质LED Flexible Strip，适用于广告展示应用。",
+    "category_id": "accessory-tools",
+    "price": "",
+    "model_number": "LED Strip",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Voltage",
+        "v_en": "12V / 24V / 220V"
+      },
+      {
+        "k_en": "LED Type",
+        "v_en": "2835 / 5050 / 3528 / 5630"
+      },
+      {
+        "k_en": "Waterproof",
+        "v_en": "IP20 / IP65 / IP67"
+      },
+      {
+        "k_en": "Length",
+        "v_en": "5m / 10m per roll"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Decorative Lighting, Signs"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "led-power-supply",
+    "name_en": "LED Power Supply",
+    "name_zh": "LED电源",
+    "name_vi": "Nguồn LED",
+    "name_tl": "LED Power Supply",
+    "description_en": "High quality LED Power Supply for advertising and display applications.",
+    "description_zh": "优质LED Power Supply，适用于广告展示应用。",
+    "category_id": "accessory-tools",
+    "price": "",
+    "model_number": "LED Power",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Model",
+        "v_en": "LPS-1 / LPS-2 / LPS-3"
+      },
+      {
+        "k_en": "Power",
+        "v_en": "100W / 200W / 350W"
+      },
+      {
+        "k_en": "Voltage",
+        "v_en": "12V / 24V / 48V"
+      },
+      {
+        "k_en": "Waterproof",
+        "v_en": "Indoor / Outdoor IP67"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "LED Strip, Module Power"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0,
+    "features_en": [
+      "Three protection levels for different environments",
+      "Wide wattage range 30W–300W",
+      "Universal AC input 85–265V",
+      "Short-circuit, over-voltage, and over-temperature protection",
+      "CE / RoHS certified",
+      "Compatible with all 12V LED products"
+    ]
+  },
+  {
+    "id": "squeegee-scraper",
+    "name_en": "Squeegee / Scraper",
+    "name_zh": "刮板/刮刀",
+    "name_vi": "Thước gạt / Dao cạo",
+    "name_tl": "Squeegee / Scraper",
+    "description_en": "High quality Squeegee / Scraper for advertising and display applications.",
+    "description_zh": "优质Squeegee / Scraper，适用于广告展示应用。",
+    "category_id": "accessory-tools",
+    "price": "",
+    "model_number": "Squeegee",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Type",
+        "v_en": "Squeegee / Scraper / Cutting Mat"
+      },
+      {
+        "k_en": "Material",
+        "v_en": "PP / TPR Handle + Rubber Blade"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "Standard / Custom"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Vinyl Application, Film Installation"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "multifunctional-knife-bla",
+    "name_en": "Multi-functional Knife & Blade",
+    "name_zh": "美工刀/刀片",
+    "name_vi": "Dao nhiều chức năng",
+    "name_tl": "Knife & Blade",
+    "description_en": "High quality Multi-functional Knife & Blade for advertising and display applications.",
+    "description_zh": "优质Multi-functional Knife & Blade，适用于广告展示应用。",
+    "category_id": "accessory-tools",
+    "price": "",
+    "model_number": "Knife",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Type",
+        "v_en": "Utility Knife / Olfa Knife / Carpet Knife"
+      },
+      {
+        "k_en": "Blade",
+        "v_en": "Standard / Hook / Carpet"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Cutting Vinyl, Banner, Film"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "banner-welding-glue",
+    "name_en": "Banner Welding Glue / PVC Glue",
+    "name_zh": "喷绘胶水/PVC胶水",
+    "name_vi": "Keo hàn bạt / Keo PVC",
+    "name_tl": "Banner Welding Glue",
+    "description_en": "High quality Banner Welding Glue / PVC Glue for advertising and display applications.",
+    "description_zh": "优质Banner Welding Glue / PVC Glue，适用于广告展示应用。",
+    "category_id": "accessory-tools",
+    "price": "",
+    "model_number": "Glue Series",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Type",
+        "v_en": "Banner Welding Glue / PVC Glue / Acrylic Glue"
+      },
+      {
+        "k_en": "Package",
+        "v_en": "Can / Bottle / Tube"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Banner Seaming, PVC Bonding"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "acrylic-glue",
+    "name_en": "Acrylic Glue",
+    "name_zh": "亚克力胶水",
+    "name_vi": "Keo acrylic",
+    "name_tl": "Acrylic Glue",
+    "description_en": "High quality Acrylic Glue for advertising and display applications.",
+    "description_zh": "优质Acrylic Glue，适用于广告展示应用。",
+    "category_id": "accessory-tools",
+    "price": "",
+    "model_number": "Acrylic Glue",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Type",
+        "v_en": "Acrylic Cement / ABS Glue"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Acrylic Bonding, Model Making"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "double-sides-adhesive",
+    "name_en": "Double Sides Adhesive",
+    "name_zh": "双面胶/胶带",
+    "name_vi": "Băng keo hai mặt",
+    "name_tl": "Double Sides Adhesive",
+    "description_en": "High quality Double Sides Adhesive for advertising and display applications.",
+    "description_zh": "优质Double Sides Adhesive，适用于广告展示应用。",
+    "category_id": "accessory-tools",
+    "price": "",
+    "model_number": "Double Adhesive",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Type",
+        "v_en": "Double Sides Tape / Masking Tape / Cloth Tape"
+      },
+      {
+        "k_en": "Width",
+        "v_en": "6-100mm"
+      },
+      {
+        "k_en": "Length",
+        "v_en": "10-50m"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Mounting, Sealing, Painting"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "banner-rope-cable",
+    "name_en": "Banner Rope / Cable Tie",
+    "name_zh": "横幅绳/扎带",
+    "name_vi": "Dây buộc / Cáp ràng buộc",
+    "name_tl": "Banner Rope / Cable Tie",
+    "description_en": "High quality Banner Rope / Cable Tie for advertising and display applications.",
+    "description_zh": "优质Banner Rope / Cable Tie，适用于广告展示应用。",
+    "category_id": "accessory-tools",
+    "price": "",
+    "model_number": "Rope / Cable Tie",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Type",
+        "v_en": "Banner Rope / Nylon Cable Tie"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "2-8mm / 3×100mm to 8×400mm"
+      },
+      {
+        "k_en": "Material",
+        "v_en": "PP / Nylon"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Banner Installation, Cable Management"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "3m-tape-vhb",
+    "name_en": "3M Tape / VHB Tape",
+    "name_zh": "3M胶带/强力双面胶",
+    "name_vi": "Băng 3M / VHB",
+    "name_tl": "3M Tape / VHB Tape",
+    "description_en": "High quality 3M Tape / VHB Tape for advertising and display applications.",
+    "description_zh": "优质3M Tape / VHB Tape，适用于广告展示应用。",
+    "category_id": "accessory-tools",
+    "price": "",
+    "model_number": "3M / VHB",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Width",
+        "v_en": "6 / 12 / 24 / 36 / 48mm"
+      },
+      {
+        "k_en": "Length",
+        "v_en": "3m / 5m / 10m / 33m"
+      },
+      {
+        "k_en": "Thickness",
+        "v_en": "0.4 / 0.8 / 1.1 / 1.6mm"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Permanent Bonding, Automotive"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "hot-wind-gun",
+    "name_en": "Hot Wind Gun / Heat Gun",
+    "name_zh": "热风枪",
+    "name_vi": "Súng nhiệt",
+    "name_tl": "Hot Wind Gun",
+    "description_en": "High quality Hot Wind Gun / Heat Gun for advertising and display applications.",
+    "description_zh": "优质Hot Wind Gun / Heat Gun，适用于广告展示应用。",
+    "category_id": "accessory-tools",
+    "price": "",
+    "model_number": "Heat Gun",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Power",
+        "v_en": "1600W / 2000W / 3000W"
+      },
+      {
+        "k_en": "Temperature",
+        "v_en": "50-600°C adjustable"
+      },
+      {
+        "k_en": "Air Flow",
+        "v_en": "250-500 L/min"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Banner Welding, Heat Shrinking"
+      }
+    ],
+    "updated_at": "2026-04-06T01:50:00.000000",
+    "images": [],
+    "main_image": 0,
+    "features_en": [
+      "Variable temperature from 50–650°C",
+      "Two-speed air flow control",
+      "Includes multiple nozzle attachments",
+      "Ergonomic handle for comfortable use",
+      "Overload protection for safety",
+      "Suitable for vinyl, shrink film, and banner applications"
+    ]
+  },
+  {
+    "id": "floor-graphics-antislip",
+    "name_en": "Floor Graphics / Anti-slip Film",
+    "name_zh": "地板贴/防滑膜",
+    "name_vi": "Decal sàn / Phim chống trượt",
+    "name_tl": "Floor Graphics",
+    "description_en": "High quality Floor Graphics / Anti-slip Film for advertising applications.",
+    "description_zh": "优质地板贴/防滑膜，适用于广告应用。",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "Floor Graphics",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Type",
+        "v_en": "Floor Graphics / Anti-slip Lamination"
+      },
+      {
+        "k_en": "Surface",
+        "v_en": "Anti-slip Coating"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "Custom sizes available"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Floor Decoration, Retail Graphics"
+      }
+    ],
+    "updated_at": "2026-04-06T01:55:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "perforated-window-film",
+    "name_en": "Perforated Window Film",
+    "name_zh": "穿孔窗贴膜",
+    "name_vi": "Phim cửa sổ đục lỗ",
+    "name_tl": "Perforated Window",
+    "description_en": "High quality Perforated Window Film for advertising applications.",
+    "description_zh": "优质穿孔窗贴膜，适用于广告应用。",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "Perforated",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Hole Size",
+        "v_en": "1.6mm / 2.0mm"
+      },
+      {
+        "k_en": "Film Thickness",
+        "v_en": "150-180 micron"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "1.27/1.52m × 50m"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Vehicle Windows, Glass Walls"
+      }
+    ],
+    "updated_at": "2026-04-06T01:55:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "uv-print-media",
+    "name_en": "UV Print Media",
+    "name_zh": "UV打印介质",
+    "name_vi": "Vật liệu in UV",
+    "name_tl": "UV Print Media",
+    "description_en": "High quality UV Print Media for advertising applications.",
+    "description_zh": "优质UV打印介质，适用于广告应用。",
+    "category_id": "advertising-media",
+    "price": "",
+    "model_number": "UV Media",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Type",
+        "v_en": "UV Flatbed / UV Roll-to-roll"
+      },
+      {
+        "k_en": "Material",
+        "v_en": "PVC / acrylic / Wood / Metal"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "UV Printing, Direct Substrate Print"
+      }
+    ],
+    "updated_at": "2026-04-06T01:55:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "sandwich-board-frame",
+    "name_en": "Sandwich Board Frame",
+    "name_zh": "A型广告牌",
+    "name_vi": "Bảng A",
+    "name_tl": "Sandwich Board",
+    "description_en": "High quality Sandwich Board Frame for advertising applications.",
+    "description_zh": "优质A型广告牌，适用于广告应用。",
+    "category_id": "display-stand",
+    "price": "",
+    "model_number": "A-Frame",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Material",
+        "v_en": "Aluminum / Steel"
+      },
+      {
+        "k_en": "Size",
+        "v_en": "A0 / A1 / A2"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Outdoor Advertising, Sidewalk Signs"
+      }
+    ],
+    "updated_at": "2026-04-06T01:55:00.000000",
+    "images": [],
+    "main_image": 0
+  },
+  {
+    "id": "grommet-machine-punch",
+    "name_en": "Grommet Machine & Punch",
+    "name_zh": "打孔器/鸡眼扣机",
+    "name_vi": "Máy đục lỗ / Grommet",
+    "name_tl": "Grommet Tool",
+    "description_en": "High quality Grommet Machine & Punch for advertising applications.",
+    "description_zh": "优质打孔器/鸡眼扣机，适用于广告应用。",
+    "category_id": "accessory-tools",
+    "price": "",
+    "model_number": "Grommet Kit",
+    "status": "active",
+    "featured": false,
+    "specs": [
+      {
+        "k_en": "Type",
+        "v_en": "Hand Punch / Automatic Grommet Machine"
+      },
+      {
+        "k_en": "Grommet Size",
+        "v_en": "4-20mm"
+      },
+      {
+        "k_en": "Application",
+        "v_en": "Banner Hemming, Grommet Installation"
+      }
+    ],
+    "updated_at": "2026-04-06T01:55:00.000000",
+    "images": [],
+    "main_image": 0
+  }
+]

@@ -1,20 +1,79 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Plus, Edit, Trash2, GripVertical, Eye, X, Sparkles } from 'lucide-react';
 
-const categories = [
-  { id: 1, name: 'Advertising Media (广告耗材)', count: 45, desc: 'Self Adhesive Vinyl, Photo Paper, PET Film, etc.' },
-  { id: 2, name: 'Advertising Panel (广告板材)', count: 28, desc: 'PVC Foam Board, Acrylic sheet, Polystyrene Sheet, etc.' },
-  { id: 3, name: 'Display Stand (展示器材)', count: 32, desc: 'Roll Up, X-Banner, Flagpole, Light Box, etc.' },
-  { id: 4, name: 'Accessory (配件)', count: 23, desc: 'Grommet Machine, Advertising Nail, LED, Glue, etc.' },
+type Category = {
+  id: number;
+  name: string;
+  count: number;
+  desc: string;
+  langData: Record<string, { name: string; desc: string }>;
+};
+
+const initialCategories: Category[] = [
+  { id: 1, name: 'Advertising Media (广告耗材)', count: 45, desc: 'Self Adhesive Vinyl, Photo Paper, PET Film, etc.', langData: { en: { name: 'Advertising Media', desc: 'Self Adhesive Vinyl, Photo Paper, PET Film, etc.' }, zh: { name: '', desc: '' }, vi: { name: '', desc: '' }, ph: { name: '', desc: '' } } },
+  { id: 2, name: 'Advertising Panel (广告板材)', count: 28, desc: 'PVC Foam Board, Acrylic sheet, Polystyrene Sheet, etc.', langData: { en: { name: 'Advertising Panel', desc: 'PVC Foam Board, Acrylic sheet, Polystyrene Sheet, etc.' }, zh: { name: '', desc: '' }, vi: { name: '', desc: '' }, ph: { name: '', desc: '' } } },
+  { id: 3, name: 'Display Stand (展示器材)', count: 32, desc: 'Roll Up, X-Banner, Flagpole, Light Box, etc.', langData: { en: { name: 'Display Stand', desc: 'Roll Up, X-Banner, Flagpole, Light Box, etc.' }, zh: { name: '', desc: '' }, vi: { name: '', desc: '' }, ph: { name: '', desc: '' } } },
+  { id: 4, name: 'Accessory (配件)', count: 23, desc: 'Grommet Machine, Advertising Nail, LED, Glue, etc.', langData: { en: { name: 'Accessory', desc: 'Grommet Machine, Advertising Nail, LED, Glue, etc.' }, zh: { name: '', desc: '' }, vi: { name: '', desc: '' }, ph: { name: '', desc: '' } } },
 ];
 
+const STORAGE_KEY = 'jinyu_material_categories';
+const PRODUCTS_STORAGE_KEY = 'jinyu_material_products';
+
+function loadCategories(): Category[] {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) { const p = JSON.parse(stored); if (Array.isArray(p) && p.length > 0) return p; }
+  } catch { /* ignore */ }
+  return initialCategories;
+}
+
+function loadProducts(): any[] {
+  try {
+    const stored = localStorage.getItem(PRODUCTS_STORAGE_KEY);
+    if (stored) { const p = JSON.parse(stored); if (Array.isArray(p) && p.length > 0) return p; }
+  } catch { /* ignore */ }
+  return [];
+}
+
+const emptyLangData = () => ({
+  en: { name: '', desc: '' }, zh: { name: '', desc: '' }, vi: { name: '', desc: '' }, ph: { name: '', desc: '' },
+});
+
 export default function Categories() {
-  const [viewModal, setViewModal] = useState<typeof categories[0] | null>(null);
-  const [editModal, setEditModal] = useState<typeof categories[0] | null>(null);
-  const [deleteModal, setDeleteModal] = useState<typeof categories[0] | null>(null);
+  const [categories, setCategories] = useState<Category[]>(loadCategories);
+  const [viewModal, setViewModal] = useState<Category | null>(null);
+  const [editModal, setEditModal] = useState<Category | null>(null);
+  const [deleteModal, setDeleteModal] = useState<Category | null>(null);
+
+  // 持久化
+  React.useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(categories)); }, [categories]);
   const [activeLang, setActiveLang] = useState('en');
   const [showAIToast, setShowAIToast] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
+
+  // 从产品数据动态计算每个分类的产品数量
+  const categoryCountMap = useMemo(() => {
+    const products = loadProducts();
+    const map: Record<string, number> = {};
+    for (const p of products) {
+      const cat = p.category || '';
+      map[cat] = (map[cat] || 0) + 1;
+    }
+    return map;
+  }, [categories]); // categories 变化时重新计算（products 也可能刚保存）
+
+  // 获取分类的产品数量：先精确匹配 category 字段，再按 langData.en.name 匹配
+  const getCount = (cat: Category): number => {
+    // 直接用分类名匹配产品的 category 字段
+    if (categoryCountMap[cat.name]) return categoryCountMap[cat.name];
+    // 用分类英文名匹配
+    const enName = cat.langData?.en?.name || '';
+    if (enName && categoryCountMap[enName]) return categoryCountMap[enName];
+    // 去掉括号后缀再匹配
+    const baseName = cat.name.split('(')[0].trim();
+    if (baseName && categoryCountMap[baseName]) return categoryCountMap[baseName];
+    return 0;
+  };
 
   const [categoryDataByLang, setCategoryDataByLang] = useState<Record<string, { name: string, desc: string }>>({
     en: { name: '', desc: '' },
@@ -27,18 +86,10 @@ export default function Categories() {
     if (editModal || viewModal) {
       const item = editModal || viewModal;
       if (item) {
-        setCategoryDataByLang(prev => ({
-          ...prev,
-          en: { name: item.name, desc: item.desc }
-        }));
+        setCategoryDataByLang(item.langData || emptyLangData());
       }
     } else {
-      setCategoryDataByLang({
-        en: { name: '', desc: '' },
-        zh: { name: '', desc: '' },
-        vi: { name: '', desc: '' },
-        ph: { name: '', desc: '' },
-      });
+      setCategoryDataByLang(emptyLangData());
     }
   }, [editModal, viewModal]);
 
@@ -78,11 +129,28 @@ export default function Categories() {
   };
 
   const handleSave = () => {
-    setEditModal(null);
+    if (!editModal) return;
+    const enName = categoryDataByLang['en']?.name || editModal.name;
+    const enDesc = categoryDataByLang['en']?.desc || editModal.desc;
+    setCategories(prev => {
+      if (editModal.id === 0) {
+        // 新建
+        const newId = Math.max(0, ...prev.map(c => c.id)) + 1;
+        const newItem = { id: newId, name: enName, count: 0, desc: enDesc, langData: { ...categoryDataByLang } };
+        // 更新 editModal 引用，保持弹框打开并同步新数据
+        setEditModal(newItem);
+        return [...prev, newItem];
+      }
+      const updated = { ...editModal, name: enName, desc: enDesc, langData: { ...categoryDataByLang } };
+      setEditModal(updated);
+      return prev.map(c => c.id === editModal.id ? updated : c);
+    });
     showToast('分类保存成功');
   };
 
   const handleDelete = () => {
+    if (!deleteModal) return;
+    setCategories(prev => prev.filter(c => c.id !== deleteModal.id));
     setDeleteModal(null);
     showToast('分类删除成功');
   };
@@ -90,7 +158,7 @@ export default function Categories() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       {toastMsg && (
-        <div className="fixed top-6 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full shadow-2xl flex items-center z-50 animate-in slide-in-from-top-4">
+        <div className="fixed top-6 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full shadow-2xl flex items-center z-[60] animate-in slide-in-from-top-4">
           <Sparkles className="w-5 h-5 text-emerald-400 mr-2" />
           <span>{toastMsg}</span>
         </div>
@@ -108,7 +176,7 @@ export default function Categories() {
       </div>
 
       {showAIToast && (
-        <div className="fixed top-4 right-4 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg flex items-center animate-in slide-in-from-top-4 z-50">
+        <div className="fixed top-4 right-4 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg flex items-center animate-in slide-in-from-top-4 z-[60]">
           <Sparkles className="w-5 h-5 text-purple-400 mr-3" />
           <div>
             <p className="font-medium text-sm">AI 正在生成多语言草稿...</p>
@@ -142,7 +210,7 @@ export default function Categories() {
                 </td>
                 <td className="px-6 py-4">
                   <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
-                    {cat.count} 个产品
+                    {getCount(cat)} 个产品
                   </span>
                 </td>
                 <td className="px-6 py-4">
@@ -166,8 +234,8 @@ export default function Categories() {
 
       {/* View Modal */}
       {viewModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center p-4 pt-[10vh] animate-in fade-in duration-200 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 my-auto">
             <div className="flex justify-between items-center p-6 border-b border-gray-100">
               <h3 className="text-lg font-bold text-gray-900">分类详情</h3>
               <button onClick={() => setViewModal(null)} className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors">
@@ -224,8 +292,8 @@ export default function Categories() {
 
       {/* Edit Modal */}
       {editModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center p-4 pt-[10vh] animate-in fade-in duration-200 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg animate-in zoom-in-95 duration-200 my-auto">
             <div className="flex justify-between items-center p-6 border-b border-gray-100">
               <h3 className="text-lg font-bold text-gray-900">编辑分类</h3>
               <button onClick={() => setEditModal(null)} className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors">
@@ -233,8 +301,8 @@ export default function Categories() {
               </button>
             </div>
 
-            <div className="flex flex-col sm:flex-row border-b border-gray-100 bg-gray-50/50 sm:items-center justify-between px-2">
-              <div className="flex overflow-x-auto hide-scrollbar">
+            <div className="border-b border-gray-100 bg-gray-50/50">
+              <div className="flex overflow-x-auto hide-scrollbar px-2">
                 {[
                   { id: 'en', label: 'English (EN)' },
                   { id: 'zh', label: '中文 (ZH)' },
@@ -250,12 +318,12 @@ export default function Categories() {
                   </button>
                 ))}
               </div>
-              <div className="p-2 sm:p-0">
-                <button onClick={handleAIGenerate} className="flex items-center text-xs font-medium text-purple-700 hover:text-purple-800 bg-purple-100 hover:bg-purple-200 px-3 py-1.5 rounded-lg transition-colors w-full sm:w-auto justify-center">
-                  <Sparkles className="w-3 h-3 mr-1" />
-                  AI一键生成
-                </button>
-              </div>
+            </div>
+            <div className="px-6 py-3 border-b border-gray-100 bg-gray-50/30">
+              <button onClick={handleAIGenerate} className="flex items-center text-xs font-medium text-purple-700 hover:text-purple-800 bg-purple-100 hover:bg-purple-200 px-3 py-1.5 rounded-lg transition-colors">
+                <Sparkles className="w-3 h-3 mr-1" />
+                AI一键生成
+              </button>
             </div>
 
             <div className="p-6 space-y-4">

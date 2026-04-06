@@ -1,39 +1,69 @@
 import React, { useState } from 'react';
 import { Plus, Edit, Trash2, ArrowLeft, Sparkles, Save, CheckCircle2, Eye, X } from 'lucide-react';
 
-const faqs = [
-  { id: 1, question: 'What is the minimum order quantity?', status: '已发布' },
-  { id: 2, question: 'Do you provide free samples?', status: '已发布' },
-  { id: 3, question: 'How long is the delivery time?', status: '已发布' },
+type FaqLangData = { seoTitle: string; question: string; slug: string; alt: string; answer: string };
+type FaqItem = {
+  id: number;
+  status: string;
+  langData: Record<string, FaqLangData>;
+};
+
+const defaultFaqs: FaqItem[] = [
+  { id: 1, status: '已发布', langData: { en: { seoTitle: 'Minimum Order Quantity FAQ', question: 'What is the minimum order quantity?', slug: 'minimum-order-quantity', alt: 'Minimum order quantity information', answer: 'We typically require a minimum order quantity of 100 rolls for standard materials.' } } },
+  { id: 2, status: '已发布', langData: { en: { seoTitle: 'Free Samples FAQ', question: 'Do you provide free samples?', slug: 'free-samples', alt: 'Free samples information', answer: 'Yes, we provide free A4-size samples for most products. Shipping cost is borne by the buyer.' } } },
+  { id: 3, status: '已发布', langData: { en: { seoTitle: 'Delivery Time FAQ', question: 'How long is the delivery time?', slug: 'delivery-time', alt: 'Delivery time information', answer: 'Standard orders typically take 15-20 working days after receiving the deposit.' } } },
 ];
 
+const FAQ_STORAGE_KEY = 'jinyu_admin_faqs';
+
+function loadFaqs(): FaqItem[] {
+  try {
+    const stored = localStorage.getItem(FAQ_STORAGE_KEY);
+    if (stored) { const p = JSON.parse(stored); if (Array.isArray(p) && p.length > 0) return p; }
+  } catch { /* ignore */ }
+  return defaultFaqs;
+}
+
+let nextFaqId = 10;
+
 export default function FAQ() {
+  const [faqs, setFaqs] = useState<FaqItem[]>(loadFaqs);
   const [view, setView] = useState<'list' | 'edit' | 'details'>('list');
   const [activeLang, setActiveLang] = useState('en');
   const [showAIToast, setShowAIToast] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
-  const [deleteModal, setDeleteModal] = useState<typeof faqs[0] | null>(null);
-  const [selectedItem, setSelectedItem] = useState<typeof faqs[0] | null>(null);
+  const [deleteModal, setDeleteModal] = useState<FaqItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<FaqItem | null>(null);
 
-  const [faqDataByLang, setFaqDataByLang] = useState<Record<string, { seoTitle: string, question: string, slug: string, alt: string, answer: string }>>({
+  const [faqDataByLang, setFaqDataByLang] = useState<Record<string, FaqLangData>>({
     en: { seoTitle: '', question: '', slug: '', alt: '', answer: '' },
     zh: { seoTitle: '', question: '', slug: '', alt: '', answer: '' },
     vi: { seoTitle: '', question: '', slug: '', alt: '', answer: '' },
     ph: { seoTitle: '', question: '', slug: '', alt: '', answer: '' },
   });
 
+  // Persist to localStorage
+  React.useEffect(() => { localStorage.setItem(FAQ_STORAGE_KEY, JSON.stringify(faqs)); }, [faqs]);
+
   React.useEffect(() => {
     if (selectedItem) {
-      setFaqDataByLang(prev => ({
-        ...prev,
-        en: { 
-          seoTitle: selectedItem.question, 
-          question: selectedItem.question, 
-          slug: selectedItem.question.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''), 
-          alt: selectedItem.question, 
-          answer: 'We typically require a minimum order quantity of 100 rolls for standard materials.' 
-        }
-      }));
+      const allLangs: Record<string, FaqLangData> = {
+        en: { seoTitle: '', question: '', slug: '', alt: '', answer: '' },
+        zh: { seoTitle: '', question: '', slug: '', alt: '', answer: '' },
+        vi: { seoTitle: '', question: '', slug: '', alt: '', answer: '' },
+        ph: { seoTitle: '', question: '', slug: '', alt: '', answer: '' },
+      };
+      if (selectedItem.langData) {
+        (['en','zh','vi','ph'] as const).forEach(l => {
+          if (selectedItem.langData[l]) allLangs[l] = { ...selectedItem.langData[l] };
+        });
+      }
+      // Fallback: if no en data, generate from status
+      if (!allLangs.en.question && selectedItem.langData?.en?.question) {
+        allLangs.en.question = selectedItem.langData.en.question;
+        allLangs.en.seoTitle = selectedItem.langData.en.seoTitle || selectedItem.langData.en.question;
+      }
+      setFaqDataByLang(allLangs);
     } else {
       setFaqDataByLang({
         en: { seoTitle: '', question: '', slug: '', alt: '', answer: '' },
@@ -128,12 +158,39 @@ export default function FAQ() {
   };
 
   const handleSave = () => {
-    showToast('FAQ 保存成功');
+    if (selectedItem) {
+      // Update existing
+      setFaqs(prev => prev.map(f => {
+        if (f.id === selectedItem.id) {
+          return { ...f, langData: { ...f.langData, ...faqDataByLang } };
+        }
+        return f;
+      }));
+      showToast('FAQ 保存成功');
+    } else {
+      // Create new
+      const newId = nextFaqId++;
+      const newItem: FaqItem = {
+        id: newId,
+        status: '已发布',
+        langData: { ...faqDataByLang },
+      };
+      setFaqs(prev => [...prev, newItem]);
+      setSelectedItem(newItem);
+      showToast('FAQ 创建成功');
+    }
   };
 
   const handleDelete = () => {
-    setDeleteModal(null);
-    showToast('FAQ 删除成功');
+    if (deleteModal) {
+      setFaqs(prev => prev.filter(f => f.id !== deleteModal.id));
+      setDeleteModal(null);
+      showToast('FAQ 删除成功');
+    }
+  };
+
+  const getDisplayQuestion = (faq: FaqItem) => {
+    return faq.langData?.en?.question || faq.langData?.zh?.question || '(无标题)';
   };
 
   if (view === 'edit' || view === 'details') {
@@ -300,7 +357,7 @@ export default function FAQ() {
             {faqs.map((faq) => (
               <tr key={faq.id} className="hover:bg-gray-50/50 transition-colors group">
                 <td className="px-6 py-4">
-                  <div className="text-sm font-bold text-gray-900">{faq.question}</div>
+                  <div className="text-sm font-bold text-gray-900">{getDisplayQuestion(faq)}</div>
                 </td>
                 <td className="px-6 py-4">
                   <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
@@ -326,6 +383,11 @@ export default function FAQ() {
                 </td>
               </tr>
             ))}
+            {faqs.length === 0 && (
+              <tr>
+                <td colSpan={3} className="px-6 py-12 text-center text-gray-400 text-sm">暂无 FAQ 数据</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -342,7 +404,7 @@ export default function FAQ() {
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">确认删除 FAQ？</h3>
               <p className="text-sm text-gray-500">
-                您确定要删除问题 <span className="font-semibold text-gray-900">"{deleteModal.question}"</span> 吗？此操作无法撤销。
+                您确定要删除问题 <span className="font-semibold text-gray-900">"{getDisplayQuestion(deleteModal)}"</span> 吗？此操作无法撤销。
               </p>
             </div>
             <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex justify-center gap-3">
