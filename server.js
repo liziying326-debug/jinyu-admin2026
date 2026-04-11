@@ -19,7 +19,9 @@ const PORT = process.env.PORT || 3002;
 
 // 中间件
 app.use(cors());
-app.use(express.json());
+// 设置 body size limit 为 10MB，支持图片 base64
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // ⚠️ 静态文件托管必须放在 API 路由之前，确保访问 / 时返回 index.html
 app.use(express.static(join(__dirname, 'dist')));
@@ -30,7 +32,12 @@ try { mkdirSync(UPLOADS_DIR, { recursive: true }); } catch {}
 
 app.use('/about-uploads', express.static(UPLOADS_DIR));
 
-// Multer 配置
+// 案例视频上传目录
+const CASE_UPLOADS_DIR = join(__dirname, 'case-uploads');
+try { mkdirSync(CASE_UPLOADS_DIR, { recursive: true }); } catch {}
+app.use('/case-uploads', express.static(CASE_UPLOADS_DIR));
+
+// Multer 配置（图片，10MB）
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
   filename: (_req, file, cb) => {
@@ -39,6 +46,16 @@ const storage = multer.diskStorage({
   },
 });
 const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
+
+// Multer 配置（视频，50MB）
+const videoStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, CASE_UPLOADS_DIR),
+  filename: (_req, file, cb) => {
+    const ext = file.originalname.split('.').pop();
+    cb(null, `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`);
+  },
+});
+const uploadVideo = multer({ storage: videoStorage, limits: { fileSize: 50 * 1024 * 1024 } });
 
 // 辅助函数：读取数据文件
 const readDataFile = (filename, defaultValue = []) => {
@@ -86,29 +103,40 @@ app.get('/api/products/:id', (req, res) => {
   }
 });
 
-// 创建产品
+// 创建产品（直接保存，不自动翻译）
 app.post('/api/products', (req, res) => {
-  const products = readDataFile('products.json', []);
-  const newProduct = {
-    ...req.body,
-    id: Date.now()
-  };
-  products.push(newProduct);
-  writeDataFile('products.json', products);
-  res.json(newProduct);
+  try {
+    const products = readDataFile('products.json', []);
+    const newProduct = {
+      ...req.body,
+      id: Date.now()
+    };
+    products.push(newProduct);
+    writeDataFile('products.json', products);
+    res.json(newProduct);
+  } catch (err) {
+    console.error('[POST /api/products] error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// 更新产品
+// 更新产品（直接保存，不自动翻译）
 app.put('/api/products/:id', (req, res) => {
-  const products = readDataFile('products.json', []);
-  const productId = String(req.params.id);
-  const index = products.findIndex(p => String(p.id) === productId);
-  if (index !== -1) {
-    products[index] = { ...products[index], ...req.body };
-    writeDataFile('products.json', products);
-    res.json(products[index]);
-  } else {
-    res.status(404).json({ error: 'Product not found' });
+  try {
+    const products = readDataFile('products.json', []);
+    const productId = String(req.params.id);
+    const index = products.findIndex(p => String(p.id) === productId);
+    
+    if (index !== -1) {
+      products[index] = { ...products[index], ...req.body };
+      writeDataFile('products.json', products);
+      res.json(products[index]);
+    } else {
+      res.status(404).json({ error: 'Product not found' });
+    }
+  } catch (err) {
+    console.error('[PUT /api/products/:id] error:', err.message);
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -119,54 +147,6 @@ app.delete('/api/products/:id', (req, res) => {
   products = products.filter(p => String(p.id) !== productId);
   writeDataFile('products.json', products);
   res.json({ success: true });
-});
-
-// ============ AI 翻译代理接口 ============
-
-app.post('/api/translate', async (req, res) => {
-  try {
-    const { texts, targetLang } = req.body;
-    if (!texts || !targetLang || !Array.isArray(texts)) {
-      return res.status(400).json({ error: 'Missing texts or targetLang' });
-    }
-    // langMap: 后台字段后缀 → MyMemory 语言代码
-    const langMap = { zh: 'zh-CN', vi: 'vi', ph: 'tl' };
-    const myMemoryLang = langMap[targetLang];
-    if (!myMemoryLang) return res.status(400).json({ error: 'Unsupported target language: ' + targetLang });
-
-    const results = [];
-
-    // 逐条翻译（MyMemory 免费版有频率限制，避免并发过高）
-    for (let i = 0; i < texts.length; i++) {
-      const text = texts[i];
-      if (!text || !text.trim()) {
-        results.push('');
-        continue;
-      }
-      try {
-        const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|${myMemoryLang}`;
-        const response = await fetch(url, { signal: AbortSignal.timeout(15000) });
-        if (!response.ok) { results.push(text); continue; }
-        const data = await response.json();
-        const translated = data?.responseData?.translatedText;
-        // MyMemory 有时会返回全大写的原文作为提示，检测并跳过
-        if (translated && translated !== text && translated.toUpperCase() !== text.toUpperCase()) {
-          results.push(translated);
-        } else if (translated && data.responseStatus === 200) {
-          results.push(translated);
-        } else {
-          results.push(text);
-        }
-      } catch {
-        results.push(text);
-      }
-      // 每条之间间隔 300ms 避免频率限制
-      if (i < texts.length - 1) await new Promise(r => setTimeout(r, 300));
-    }
-    res.json({ success: true, translations: results });
-  } catch (err) {
-    res.status(500).json({ error: err.message || 'Translation failed' });
-  }
 });
 
 // ============ 翻译接口 ============
@@ -186,6 +166,315 @@ app.post('/api/i18n', (req, res) => {
   writeDataFile('translations.json', translations);
   res.json({ success: true });
 });
+
+// ============ 翻译代理接口（前端自动翻译用） ============
+
+// 翻译单个文本
+app.post('/api/translate', async (req, res) => {
+  const { text, from, to } = req.body;
+  if (!text || !from || !to) {
+    return res.status(400).json({ error: 'Missing text, from, or to' });
+  }
+  if (from === to) {
+    return res.json({ translatedText: text });
+  }
+  try {
+    const translated = await translateText(text, from, to);
+    res.json({ translatedText: translated });
+  } catch (err) {
+    console.error('[translate] error:', err.message);
+    res.status(500).json({ error: 'Translation failed' });
+  }
+});
+
+// 批量翻译：接收 { from, to, texts: { key1: text1, key2: text2 } }
+// 返回 { translations: { key1: translated1, key2: translated2 } } 并自动保存到 translations.json
+app.post('/api/translate/batch', async (req, res) => {
+  const { from, to, texts } = req.body;
+  if (!from || !to || !texts || typeof texts !== 'object') {
+    return res.status(400).json({ error: 'Missing from, to, or texts' });
+  }
+  if (from === to) {
+    return res.json({ translations: texts });
+  }
+
+  try {
+    const keys = Object.keys(texts);
+    const values = Object.values(texts);
+    const translations = {};
+
+    // 微软 API 支持单次请求传多个文本，效率最高
+    // 分批处理（每批最多 100 条，防止请求体过大）
+    const BATCH_SIZE = 50;
+    const allResults = [];
+
+    for (let i = 0; i < values.length; i += BATCH_SIZE) {
+      const batchValues = values.slice(i, i + BATCH_SIZE);
+      const batchResult = await translateBatch(batchValues, from, to);
+      allResults.push(...batchResult);
+    }
+
+    for (let i = 0; i < keys.length; i++) {
+      const translated = allResults[i];
+      if (translated && translated.trim()) {
+        translations[keys[i]] = translated.trim();
+      } else {
+        translations[keys[i]] = values[i]; // fallback 原文
+      }
+    }
+
+    // 自动保存翻译结果到 translations.json
+    const allTranslations = readDataFile('translations.json', {});
+    if (!allTranslations[to]) allTranslations[to] = {};
+    Object.entries(translations).forEach(([key, value]) => {
+      if (value && value !== key) {
+        allTranslations[to][key] = value;
+      }
+    });
+    writeDataFile('translations.json', allTranslations);
+
+    console.log(`[translate] batch: ${from} → ${to}, ${keys.length} keys saved`);
+    // 返回有序数组（供脚本使用）+ key-value 对象（自动保存用）
+    res.json({ translations, ordered: keys.map(k => translations[k]) });
+  } catch (err) {
+    console.error('[translate] batch error:', err.message);
+    res.status(500).json({ error: 'Batch translation failed' });
+  }
+});
+
+// 翻译函数：优先微软 Edge 翻译（国内可访问、免费、支持中越菲英），备选 MyMemory
+// 微软 Edge Translate 无需密钥，动态获取 token
+let _msToken = null;
+let _msTokenExpiry = 0;
+
+async function getMsToken() {
+  if (_msToken && Date.now() < _msTokenExpiry) return _msToken;
+  const res = await fetch('https://edge.microsoft.com/translate/auth', {
+    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+    signal: AbortSignal.timeout(8000)
+  });
+  if (!res.ok) throw new Error(`MS token HTTP ${res.status}`);
+  const token = await res.text();
+  _msToken = token.trim();
+  _msTokenExpiry = Date.now() + 9 * 60 * 1000; // token 有效约10分钟，提前1分钟刷新
+  return _msToken;
+}
+
+async function translateText(text, from, to) {
+  // 语言代码映射：微软 API 用 zh-Hans，菲律宾语用 tl（Tagalog）
+  const msLangMap = { 'en': 'en', 'zh': 'zh-Hans', 'vi': 'vi', 'fil': 'fil', 'ph': 'fil' };
+  const myLangMap = { 'en': 'en', 'zh': 'zh-CN', 'vi': 'vi', 'tl': 'tl', 'fil': 'tl', 'ph': 'ph' };
+
+  // ── 方法1：微软 Edge 翻译（国内可直接访问，无配额限制）──
+  try {
+    const token = await getMsToken();
+    const msFrom = msLangMap[from] || from;
+    const msTo   = msLangMap[to]   || to;
+
+    const msUrl = `https://api-edge.cognitive.microsofttranslator.com/translate?from=${msFrom}&to=${msTo}&api-version=3.0&textType=plain`;
+    console.log(`[translate] MS request: from=${msFrom} to=${msTo} text="${text.substring(0,20)}" tokenLen=${token.length}`);
+    const msRes = await fetch(msUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0'
+      },
+      body: JSON.stringify([{ Text: text }]),
+      signal: AbortSignal.timeout(10000)
+    });
+    console.log(`[translate] MS response status: ${msRes.status}`);
+
+    if (!msRes.ok) throw new Error(`MS translate HTTP ${msRes.status}`);
+    const msData = await msRes.json();
+    const result = msData?.[0]?.translations?.[0]?.text;
+    if (result && result.trim()) {
+      return result.trim();
+    }
+    throw new Error('MS returned empty result');
+  } catch (err1) {
+    console.warn('[translate] MS Edge failed:', err1.message, '- trying MyMemory fallback');
+
+    // ── 方法2：MyMemory（备选，有每日配额限制）──
+    try {
+      const sl = myLangMap[from] || from;
+      const tl = myLangMap[to]   || to;
+      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sl}|${tl}`;
+      const response = await fetch(url, {
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(8000)
+      });
+      const data = await response.json();
+      if (data.responseStatus === 200 && data.responseData?.translatedText) {
+        let result = data.responseData.translatedText;
+        if (result === result.toUpperCase() && result.length > 20 && text !== text.toUpperCase()) {
+          throw new Error('MYMEMORY_BAD');
+        }
+        if (data.responseDetails?.includes('AVAILABLE FREE TRANSLATIONS')) {
+          throw new Error('MYMEMORY_QUOTA');
+        }
+        return result;
+      }
+      throw new Error(`MyMemory status ${data.responseStatus}`);
+    } catch (err2) {
+      console.error('[translate] all methods failed:', err1.message, '|', err2.message);
+      throw new Error('All translation APIs failed');
+    }
+  }
+}
+
+// 批量翻译多个文本（利用微软 API 原生多文本请求，效率最高）
+// 返回与输入数组等长的翻译结果数组
+async function translateBatch(texts, from, to) {
+  // 微软 API 语言代码：菲律宾语用 fil（不是 tl）
+  const msLangMap = { 'en': 'en', 'zh': 'zh-Hans', 'vi': 'vi', 'fil': 'fil', 'ph': 'fil' };
+  const myLangMap = { 'en': 'en', 'zh': 'zh-CN', 'vi': 'vi', 'tl': 'tl', 'fil': 'tl', 'ph': 'tl' };
+
+  // ── 方法1：微软 Edge 翻译，一次请求多个文本 ──
+  try {
+    const token = await getMsToken();
+    const msFrom = msLangMap[from] || from;
+    const msTo   = msLangMap[to]   || to;
+
+    const msUrl = `https://api-edge.cognitive.microsofttranslator.com/translate?from=${msFrom}&to=${msTo}&api-version=3.0&textType=plain`;
+    const msRes = await fetch(msUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0'
+      },
+      body: JSON.stringify(texts.map(t => ({ Text: t || '' }))),
+      signal: AbortSignal.timeout(15000)
+    });
+
+    if (!msRes.ok) throw new Error(`MS batch HTTP ${msRes.status}`);
+    const msData = await msRes.json();
+
+    if (Array.isArray(msData)) {
+      return msData.map((item, i) => item?.translations?.[0]?.text || texts[i] || '');
+    }
+    throw new Error('MS batch returned unexpected format');
+  } catch (err1) {
+    console.warn('[translate] MS batch failed:', err1.message, '- falling back to single translate');
+    // 备选：逐条翻译（性能稍低但保证正确性）
+    const results = [];
+    for (const text of texts) {
+      try {
+        results.push(await translateText(text, from, to));
+      } catch {
+        results.push(text); // 失败时保留原文
+      }
+    }
+    return results;
+  }
+}
+
+// ============ 产品自动翻译辅助函数 ============
+// 当只提供英文字段时，自动翻译生成其他语言版本
+async function autoTranslateProductFields(product) {
+  const targetLangs = ['zh', 'vi', 'tl'];
+  const result = { ...product };
+
+  // 翻译 name（如果英文有值但目标语言没有）
+  if (product.name_en) {
+    for (const lang of targetLangs) {
+      if (!product[`name_${lang}`] && !product[`name_ph`] && lang !== 'tl') {
+        try {
+          const translated = await translateText(product.name_en, 'en', lang);
+          result[`name_${lang}`] = translated;
+        } catch (e) {
+          console.warn(`[auto-translate] name failed: ${lang}`, e.message);
+        }
+      }
+    }
+    // tl 用 ph 字段
+    if (!product.name_tl && !product.name_ph) {
+      try {
+        result.name_tl = await translateText(product.name_en, 'en', 'tl');
+      } catch (e) {
+        console.warn('[auto-translate] name_tl failed:', e.message);
+      }
+    }
+  }
+
+  // 翻译 description
+  if (product.description_en) {
+    for (const lang of targetLangs) {
+      const langKey = lang === 'tl' ? 'ph' : lang;
+      if (!product[`description_${langKey}`]) {
+        try {
+          const translated = await translateText(product.description_en, 'en', lang);
+          result[`description_${langKey}`] = translated;
+        } catch (e) {
+          console.warn(`[auto-translate] description failed: ${lang}`, e.message);
+        }
+      }
+    }
+  }
+
+  // 翻译 features
+  if (product.features_en && Array.isArray(product.features_en)) {
+    const featuresMap = { zh: 'features_zh', vi: 'features_vi', tl: 'features_ph' };
+    for (const lang of targetLangs) {
+      const targetKey = featuresMap[lang];
+      if (!product[targetKey] || product[targetKey].length === 0) {
+        try {
+          const translated = await translateBatch(product.features_en, 'en', lang);
+          result[targetKey] = translated;
+        } catch (e) {
+          console.warn(`[auto-translate] features failed: ${lang}`, e.message);
+        }
+      }
+    }
+    if (!product.features_tl && !product.features_ph) {
+      try {
+        result.features_tl = await translateBatch(product.features_en, 'en', 'tl');
+      } catch (e) {
+        console.warn('[auto-translate] features_tl failed:', e.message);
+      }
+    }
+  }
+
+  // 翻译 specs
+  if (product.specs && Array.isArray(product.specs)) {
+    const specsMap = { zh: 'specs_zh', vi: 'specs_vi', tl: 'specs_ph' };
+    for (const lang of targetLangs) {
+      const targetKey = specsMap[lang];
+      if (!product[targetKey] || product[targetKey].length === 0) {
+        try {
+          const specNames = product.specs.map(s => s.k_en || '');
+          const specValues = product.specs.map(s => s.v_en || '');
+          const translatedNames = await translateBatch(specNames, 'en', lang);
+          const translatedValues = await translateBatch(specValues, 'en', lang);
+          result[targetKey] = product.specs.map((s, i) => ({
+            k: translatedNames[i] || '',
+            v: translatedValues[i] || ''
+          }));
+        } catch (e) {
+          console.warn(`[auto-translate] specs failed: ${lang}`, e.message);
+        }
+      }
+    }
+    // tl specs
+    if (!product.specs_tl && !product.specs_ph) {
+      try {
+        const specNames = product.specs.map(s => s.k_en || '');
+        const specValues = product.specs.map(s => s.v_en || '');
+        const translatedNames = await translateBatch(specNames, 'en', 'tl');
+        const translatedValues = await translateBatch(specValues, 'en', 'tl');
+        result.specs_tl = product.specs.map((s, i) => ({
+          k: translatedNames[i] || '',
+          v: translatedValues[i] || ''
+        }));
+      } catch (e) {
+        console.warn('[auto-translate] specs_tl failed:', e.message);
+      }
+    }
+  }
+
+  return result;
+}
 
 // ============ 设置接口 ============
 
@@ -211,10 +500,13 @@ app.post('/api/settings', (req, res) => {
 // 提交联系表单
 app.post('/api/contact', (req, res) => {
   const contacts = readDataFile('contacts.json', []);
+  const now = new Date();
   const newContact = {
     ...req.body,
     id: Date.now(),
-    createdAt: new Date().toISOString()
+    date: now.toISOString().slice(0, 10),      // 确保 date 字段存在（YYYY-MM-DD）
+    createdAt: now.toISOString(),
+    isRead: false,
   };
   contacts.push(newContact);
   writeDataFile('contacts.json', contacts);
@@ -226,6 +518,16 @@ app.post('/api/contact', (req, res) => {
 app.get('/api/contacts', (req, res) => {
   const contacts = readDataFile('contacts.json', []);
   res.json(contacts);
+});
+
+// 标记联系人已读
+app.patch('/api/contacts/:id/read', (req, res) => {
+  let contacts = readDataFile('contacts.json', []);
+  const idx = contacts.findIndex(c => String(c.id) === String(req.params.id));
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+  contacts[idx].isRead = true;
+  writeDataFile('contacts.json', contacts);
+  res.json({ success: true });
 });
 
 // ============ 新闻接口 ============
@@ -265,6 +567,36 @@ app.delete('/api/news/:id', (req, res) => {
   res.json({ success: true });
 });
 
+// 前台兼容：/api/blog → 返回 {success, data} 格式（与 /api/news 相同数据）
+app.get('/api/blog', (req, res) => {
+  const news = readDataFile('news.json', []);
+  res.json({ success: true, data: news });
+});
+
+// 前台兼容：/api/blog/:slug → 按 slug 查找单条新闻
+app.get('/api/blog/:slug', (req, res) => {
+  const news = readDataFile('news.json', []);
+  const slug = req.params.slug;
+  // 先按所有语言的 slug 匹配（en/zh/vi/ph）
+  const langKeys = ['en', 'zh', 'vi', 'ph', 'tl', 'fil'];
+  let item = news.find(n => {
+    if (!n.langData) return false;
+    return langKeys.some(lang => n.langData[lang] && n.langData[lang].slug === slug);
+  });
+  // 如果没找到，按 id 匹配（支持 id 或 'news-{id}' 格式）
+  if (!item) {
+    const numericId = parseInt(slug.replace('news-', ''));
+    if (!isNaN(numericId)) {
+      item = news.find(n => n.id === numericId);
+    }
+  }
+  if (item) {
+    res.json({ success: true, data: item });
+  } else {
+    res.status(404).json({ success: false, message: 'News not found' });
+  }
+});
+
 // ============ 案例研究接口 ============
 
 app.get('/api/cases', (req, res) => {
@@ -302,6 +634,22 @@ app.delete('/api/cases/:id', (req, res) => {
   res.json({ success: true });
 });
 
+// 前台兼容：/api/case-studies → 返回 {success, data} 格式（与 /api/cases 相同数据）
+app.get('/api/case-studies', (req, res) => {
+  const cases = readDataFile('cases.json', []);
+  res.json({ success: true, data: cases });
+});
+
+// ============ 视频上传接口 ============
+
+app.post('/api/upload/video', uploadVideo.single('video'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, error: '未检测到视频文件' });
+  }
+  const url = `/case-uploads/${req.file.filename}`;
+  res.json({ success: true, url });
+});
+
 // ============ 分类接口 ============
 
 app.get('/api/categories', (req, res) => {
@@ -311,9 +659,19 @@ app.get('/api/categories', (req, res) => {
 
 app.post('/api/categories', (req, res) => {
   const categories = readDataFile('categories.json', []);
+  // id 优先用前端传来的，否则由 name_en 生成 slug，确保是字符串格式
+  const rawId = req.body.id;
+  let id;
+  if (rawId && typeof rawId === 'string' && rawId.trim()) {
+    id = rawId.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  } else if (req.body.name_en) {
+    id = req.body.name_en.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  } else {
+    id = 'category-' + Date.now();
+  }
   const newItem = {
     ...req.body,
-    id: Date.now()
+    id,
   };
   categories.push(newItem);
   writeDataFile('categories.json', categories);
@@ -322,7 +680,8 @@ app.post('/api/categories', (req, res) => {
 
 app.put('/api/categories/:id', (req, res) => {
   const categories = readDataFile('categories.json', []);
-  const index = categories.findIndex(c => c.id === parseInt(req.params.id));
+  // id 可能是数字或字符串，统一用字符串比较
+  const index = categories.findIndex(c => String(c.id) === String(req.params.id));
   if (index !== -1) {
     categories[index] = { ...categories[index], ...req.body };
     writeDataFile('categories.json', categories);
@@ -333,41 +692,118 @@ app.put('/api/categories/:id', (req, res) => {
 });
 
 app.delete('/api/categories/:id', (req, res) => {
+  const catId = String(req.params.id);
   let categories = readDataFile('categories.json', []);
-  categories = categories.filter(c => c.id !== parseInt(req.params.id));
+  const cat = categories.find(c => String(c.id) === catId);
+  if (!cat) {
+    return res.status(404).json({ error: 'Category not found' });
+  }
+  const before = categories.length;
+  categories = categories.filter(c => String(c.id) !== catId);
+  if (categories.length === before) {
+    return res.status(404).json({ error: 'Category not found' });
+  }
   writeDataFile('categories.json', categories);
-  res.json({ success: true });
+
+  // 同步删除该分类下的所有产品（匹配 category_id 或 category 字段）
+  let products = readDataFile('products.json', []);
+  const beforeProducts = products.length;
+  products = products.filter(p => String(p.category_id) !== catId && String(p.category) !== catId);
+  const deletedCount = beforeProducts - products.length;
+  if (deletedCount > 0) {
+    writeDataFile('products.json', products);
+  }
+
+  res.json({ success: true, deletedProducts: deletedCount });
 });
 
 // ============ 应用场景接口 ============
 
 app.get('/api/scenarios', (req, res) => {
   const scenarios = readDataFile('scenarios.json', []);
-  res.json(scenarios);
+  // 返回前台需要的扁平格式：name_en/_zh/_vi/_tl + description_en/_zh/_vi/_tl + materials
+  const flat = scenarios.map(s => ({
+    id: s.id,
+    slug: s.slug || s.name?.toLowerCase().replace(/\s+/g, '-') || '',
+    image: Array.isArray(s.images) ? s.images[0] : s.image || '',
+    images: s.images || [],
+    name_en:  s.langData?.en?.name  || s.name  || '',
+    name_zh:  s.langData?.zh?.name  || '',
+    name_vi:  s.langData?.vi?.name  || '',
+    name_tl:  s.langData?.ph?.name  || s.langData?.tl?.name || '',
+    description_en:  s.langData?.en?.desc  || s.desc || '',
+    description_zh:  s.langData?.zh?.desc  || '',
+    description_vi:  s.langData?.vi?.desc  || '',
+    description_tl:  s.langData?.ph?.desc  || s.langData?.tl?.desc || '',
+    // 推荐材料（扁平化）
+    materials: Array.isArray(s.materials) ? s.materials.map(m => ({
+      id: m.id,
+      name: m.langData?.en?.name || m.name || '',
+      name_en:  m.langData?.en?.name  || m.name  || '',
+      name_zh:  m.langData?.zh?.name  || '',
+      name_vi:  m.langData?.vi?.name  || '',
+      name_tl:  m.langData?.ph?.name  || '',
+      desc: m.langData?.en?.desc || m.desc || '',
+      description_en:  m.langData?.en?.desc  || m.desc || '',
+      description_zh:  m.langData?.zh?.desc  || '',
+      description_vi:  m.langData?.vi?.desc  || '',
+      description_tl:  m.langData?.ph?.desc  || '',
+    })) : []
+  }));
+  res.json({ success: true, data: flat });
 });
+
+// 统一保存格式：扁平 key → nested langData
+function normalizeScenario(body) {
+  return {
+    id: body.id || Date.now(),
+    name: body.name_en || body.name || '',
+    desc: body.description_en || body.desc || '',
+    slug: body.slug || '',
+    image: body.image || '',
+    images: body.images || [],
+    langData: {
+      en: { name: body.name_en || body.name || '', desc: body.description_en || body.desc || '' },
+      zh: { name: body.name_zh || '', desc: body.description_zh || '' },
+      vi: { name: body.name_vi || '', desc: body.description_vi || '' },
+      ph: { name: body.name_tl || body.name_ph || '', desc: body.description_tl || body.description_ph || '' },
+    },
+    // 保留推荐材料
+    materials: Array.isArray(body.materials) ? body.materials.map(m => ({
+      id: m.id || String(Date.now()),
+      name: m.name || m.name_en || '',
+      desc: m.desc || m.description_en || '',
+      langData: {
+        en:  { name: m.name_en  || m.name || '', desc: m.description_en  || m.desc || '' },
+        zh:  { name: m.name_zh  || '', desc: m.description_zh  || '' },
+        vi:  { name: m.name_vi  || '', desc: m.description_vi  || '' },
+        ph:  { name: m.name_tl  || m.name_ph || '', desc: m.description_tl  || m.description_ph || '' },
+      }
+    })) : []
+  };
+}
 
 app.post('/api/scenarios', (req, res) => {
   const scenarios = readDataFile('scenarios.json', []);
-  const newItem = {
-    ...req.body,
-    id: Date.now()
-  };
+  const newItem = normalizeScenario(req.body);
   scenarios.push(newItem);
   writeDataFile('scenarios.json', scenarios);
-  res.json(newItem);
+  res.json({ success: true, data: newItem });
 });
 
 app.put('/api/scenarios/:id', (req, res) => {
   const scenarios = readDataFile('scenarios.json', []);
   const index = scenarios.findIndex(s => s.id === parseInt(req.params.id));
   if (index !== -1) {
-    scenarios[index] = { ...scenarios[index], ...req.body };
+    const updated = normalizeScenario({ ...scenarios[index], ...req.body });
+    scenarios[index] = updated;
     writeDataFile('scenarios.json', scenarios);
-    res.json(scenarios[index]);
+    res.json({ success: true, data: updated });
   } else {
     res.status(404).json({ error: 'Scenario not found' });
   }
 });
+
 
 app.delete('/api/scenarios/:id', (req, res) => {
   let scenarios = readDataFile('scenarios.json', []);
@@ -525,6 +961,72 @@ app.delete('/api/auth/accounts/:id', (req, res) => {
   accounts = accounts.filter(a => a.id !== parseInt(req.params.id));
   writeDataFile('accounts.json', accounts);
   res.json({ success: true });
+});
+
+// ============ 统计汇总接口 ============
+
+// GET /api/stats - 返回真实统计数据
+app.get('/api/stats', (req, res) => {
+  const products = readDataFile('products.json', []);
+  const categories = readDataFile('categories.json', []);
+  const news = readDataFile('news.json', []);
+  const contacts = readDataFile('contacts.json', []);
+
+  // 今日日期
+  const today = new Date().toISOString().slice(0, 10);
+  const todayContacts = contacts.filter(c => c.date && c.date.startsWith(today));
+  const unreadContacts = contacts.filter(c => !c.isRead);
+
+  // 访问量统计 - 前台 server.js 写入格式: { daily: {YYYY-MM-DD: count}, monthly: {YYYY-MM: count} }
+  const rawPageviews = readDataFile('pageviews.json', {});
+  // 兼容两种格式：带 daily 嵌套 或 直接 {date: count}
+  const dailyData = (rawPageviews.daily && typeof rawPageviews.daily === 'object')
+    ? rawPageviews.daily
+    : rawPageviews;
+
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+  // 按月聚合访问量（从 daily 数据汇总）
+  const monthlyVisits = {};
+  Object.entries(dailyData).forEach(([date, count]) => {
+    if (typeof count === 'number' && /^\d{4}-\d{2}-\d{2}$/.test(date) && new Date(date) >= sixMonthsAgo) {
+      const month = date.slice(0, 7); // YYYY-MM
+      monthlyVisits[month] = (monthlyVisits[month] || 0) + count;
+    }
+  });
+
+  // 按周聚合（最近7天）
+  const weeklyVisits = {};
+  const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().slice(0, 10);
+    const dayName = `周${dayNames[d.getDay()]}`;
+    weeklyVisits[dayName] = dailyData[dateStr] || 0;
+  }
+
+  // 今日访问量
+  const todayVisits = dailyData[today] || 0;
+
+  res.json({
+    products: products.length,
+    categories: categories.length,
+    news: news.length,
+    contacts: contacts.length,
+    unreadContacts: unreadContacts.length,
+    todayContacts: todayContacts.length,
+    todayVisits,
+    monthlyVisits: Object.entries(monthlyVisits)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, visits]) => ({
+        name: month.slice(5) + '月', // MM月
+        visits,
+        inquiries: contacts.filter(c => c.date && c.date.startsWith(month)).length
+      })),
+    weeklyVisits: Object.entries(weeklyVisits).map(([name, visits]) => ({ name, visits })),
+  });
 });
 
 // SPA fallback - 所有未匹配的路由返回 index.html

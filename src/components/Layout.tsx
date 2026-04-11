@@ -204,9 +204,6 @@ export default function Layout({ children, activeTab, setActiveTab, currentUser,
               <Bell className="w-5 h-5" />
               <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
             </button>
-            <a href="https://www.jinyu2021.com" target="_blank" rel="noreferrer" className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
-              查看网站
-            </a>
           </div>
         </header>
 

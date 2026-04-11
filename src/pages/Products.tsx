@@ -38,7 +38,7 @@ const makeDefaultSpecsByLang = (): SpecsByLang => ({
   ph: defaultSpecs.map(s => ({ ...s })),
 });
 
-const makeDefaultNamesByLang = (name = 'Self Adhesive Vinyl'): NamesByLang => ({
+const makeDefaultNamesByLang = (name = ''): NamesByLang => ({
   en: name,
   zh: '',
   vi: '',
@@ -145,33 +145,42 @@ export default function Products() {
   const [descriptionsByLang, setDescriptionsByLang] = useState<DescriptionsByLang>(makeDefaultDescriptionsByLang());
   const [productImages, setProductImages] = useState<string[]>([]);
   const [editCategory, setEditCategory] = useState('Advertising Media');
+  const [editCategoryId, setEditCategoryId] = useState('advertising-media');
   const [editStatus, setEditStatus] = useState('上架');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('所有分类');
+  const [categoryList, setCategoryList] = useState<{id: string; name_en: string}[]>([]);
 
   const [toastMsg, setToastMsg] = useState('');
   const [deleteImageIndex, setDeleteImageIndex] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  // 从 API 加载产品
+  // 从 API 加载产品（同时加载分类，保证分类名称正确显示）
   React.useEffect(() => {
     async function fetchProducts() {
       try {
-        const res = await fetch('/api/products');
-        if (res.ok) {
-          const apiProducts = await res.json();
-          // 转换为前端格式
+        // 并行加载分类和产品
+        const [catRes, prodRes] = await Promise.all([
+          fetch('/api/categories', { cache: 'no-store' }),
+          fetch('/api/products'),
+        ]);
+        let cats: {id: string; name_en: string}[] = [];
+        if (catRes.ok) {
+          const catData = await catRes.json();
+          cats = Array.isArray(catData) ? catData : (catData.data || []);
+          setCategoryList(cats);
+        }
+        if (prodRes.ok) {
+          const apiProducts = await prodRes.json();
+          // 转换为前端格式，用已加载的分类列表查找分类名
           const converted: Product[] = apiProducts.map((p: any, index: number) => ({
             id: index + 1,
             name: p.name_en || p.name_zh || 'Product',
-            category: p.category_id === 'advertising-media' ? 'Advertising Media' 
-                   : p.category_id === 'advertising-panel' ? 'Advertising Panel'
-                   : p.category_id === 'display-stand' ? 'Display Stand'
-                   : p.category_id === 'accessory-tools' ? 'Accessory'
-                   : p.category_id || 'Other',
+            category: getCategoryName(p.category_id, cats),
             status: p.status === 'active' ? '上架' : '下架',
-            images: p.images && p.images.length > 0 ? p.images : ['https://picsum.photos/seed/' + p.id + '/100/100'],
+            images: p.images || [],
             _backendId: p.id || '',
             namesByLang: {
               en: p.name_en || '',
@@ -209,10 +218,41 @@ export default function Products() {
     fetchProducts();
   }, []);
 
-  // 持久化 products 到 localStorage
+  // 持久化 products 到 localStorage（仅当数据量小时保存，防止 quota exceeded）
   React.useEffect(() => {
-    localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(products));
+    try {
+      const data = JSON.stringify(products);
+      if (data.length < 4 * 1024 * 1024) { // 限制 4MB 以内才写入
+        localStorage.setItem(PRODUCTS_STORAGE_KEY, data);
+      }
+    } catch (e) {
+      // localStorage 已满，忽略写入错误，不影响正常功能
+      console.warn('localStorage quota exceeded, skipping product cache save');
+    }
   }, [products]);
+
+  // 强制刷新分类列表（无缓存），每次打开新增/编辑表单时调用
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch('/api/categories', { cache: 'no-store' });
+      if (res.ok) {
+        const cats = await res.json();
+        const list = Array.isArray(cats) ? cats : (cats.data || []);
+        setCategoryList(list);
+        return list;
+      }
+    } catch (e) {
+      console.error('Failed to fetch categories:', e);
+    }
+    return [];
+  };
+
+  // 根据 category_id 从 categoryList 查找分类名，找不到就直接返回 id 本身（兼容新旧格式）
+  const getCategoryName = (categoryId: string, cats?: {id: string; name_en: string}[]) => {
+    const list = cats || categoryList;
+    const found = list.find(c => String(c.id) === String(categoryId));
+    return found ? found.name_en : categoryId || 'Other';
+  };
 
   // Prevent browser from opening dropped files
   React.useEffect(() => {
@@ -227,8 +267,10 @@ export default function Products() {
   }, []);
 
   // 打开编辑/详情时，从产品数据恢复所有字段
-  const openEdit = (product: Product | null, mode: 'edit' | 'details') => {
+  const openEdit = async (product: Product | null, mode: 'edit' | 'details') => {
     setSelectedItem(product);
+    // 强制刷新分类列表（无缓存）
+    const cats = await fetchCategories();
     if (product) {
       setNamesByLang({ ...product.namesByLang });
       setDescriptionsByLang({ ...product.descriptionsByLang });
@@ -246,6 +288,9 @@ export default function Products() {
       });
       setProductImages([...product.images]);
       setEditCategory(product.category);
+      // 找到对应分类的 id
+      const matchedCat = cats.find((c: any) => c.name_en === product.category || c.id === product.category);
+      setEditCategoryId(matchedCat ? matchedCat.id : (product._backendId ? '' : 'advertising-media'));
       setEditStatus(product.status);
     } else {
       // 新建产品
@@ -254,7 +299,10 @@ export default function Products() {
       setSpecsByLang(makeDefaultSpecsByLang());
       setFeaturesByLang(makeDefaultFeaturesByLang());
       setProductImages([]);
-      setEditCategory('Advertising Media');
+      // 默认选第一个分类
+      const firstCat = cats[0] || { id: 'advertising-media', name_en: 'Advertising Media' };
+      setEditCategory(firstCat.name_en);
+      setEditCategoryId(firstCat.id);
       setEditStatus('上架');
     }
     setActiveLang('en');
@@ -310,112 +358,170 @@ export default function Products() {
   };
 
   const handleSave = async () => {
-    const enName = namesByLang['en'] || '未命名产品';
-    const zhName = namesByLang['zh'];
-    const displayName = zhName ? `${enName} (${zhName})` : enName;
+    // 验证：英文名必须填写
+    if (!namesByLang.en || !namesByLang.en.trim()) {
+      showToast('请填写英文产品名称');
+      return;
+    }
+    // 验证：图片必须上传
+    if (!productImages || productImages.length === 0) {
+      showToast('请上传产品图片');
+      return;
+    }
 
-    // 将前端格式转换为后端 API 格式
-    const backendProduct = {
-      name_en: namesByLang.en || '',
-      name_zh: namesByLang.zh || '',
-      name_vi: namesByLang.vi || '',
-      name_tl: namesByLang.ph || '',
-      description_en: descriptionsByLang.en || '',
-      description_zh: descriptionsByLang.zh || '',
-      description_vi: descriptionsByLang.vi || '',
-      description_tl: descriptionsByLang.ph || '',
-      category_id: editCategory === 'Advertising Media' ? 'advertising-media'
-                 : editCategory === 'Advertising Panel' ? 'advertising-panel'
-                 : editCategory === 'Display Stand' ? 'display-stand'
-                 : 'accessory-tools',
-      status: editStatus === '上架' ? 'active' : 'inactive',
-      images: productImages,
-      specs: specsByLang.en.map((s, i) => ({
-        k_en: s.name || '', v_en: s.value || '',
-        k_zh: specsByLang.zh[i]?.name || '', v_zh: specsByLang.zh[i]?.value || '',
-        k_vi: specsByLang.vi[i]?.name || '', v_vi: specsByLang.vi[i]?.value || '',
-        k_tl: specsByLang.ph[i]?.name || '', v_tl: specsByLang.ph[i]?.value || '',
-      })),
-      features_en: featuresByLang.en.filter(f => f),
-      features_zh: featuresByLang.zh.filter(f => f),
-      features_vi: featuresByLang.vi.filter(f => f),
-      features_tl: featuresByLang.ph.filter(f => f),
-    };
-
+    setIsSaving(true);
+    
     try {
+      // 只保存英文内容及用户已填写的其他语言内容，不调用任何翻译API
+      const backendProduct = {
+        name_en: namesByLang.en || '',
+        name_zh: namesByLang.zh || '',
+        name_vi: namesByLang.vi || '',
+        name_tl: namesByLang.ph || '',
+        description_en: descriptionsByLang.en || '',
+        description_zh: descriptionsByLang.zh || '',
+        description_vi: descriptionsByLang.vi || '',
+        description_tl: descriptionsByLang.ph || '',
+        category_id: editCategoryId || 'advertising-media',
+        status: editStatus === '上架' ? 'active' : 'inactive',
+        images: productImages,
+        specs: specsByLang.en.map((s, i) => ({
+          k_en: s.name || '', v_en: s.value || '',
+          k_zh: specsByLang.zh[i]?.name || '', v_zh: specsByLang.zh[i]?.value || '',
+          k_vi: specsByLang.vi[i]?.name || '', v_vi: specsByLang.vi[i]?.value || '',
+          k_tl: specsByLang.ph[i]?.name || '', v_tl: specsByLang.ph[i]?.value || '',
+        })),
+        features_en: featuresByLang.en.filter(f => f),
+        features_zh: featuresByLang.zh.filter(f => f),
+        features_vi: featuresByLang.vi.filter(f => f),
+        features_tl: featuresByLang.ph.filter(f => f),
+      };
+
+      console.log('[handleSave] backendProduct:', JSON.stringify(backendProduct).substring(0, 200));
+      
+      let newId = 0;
+      
       if (selectedItem && selectedItem._backendId) {
-        // 更新已有产品 - 调用 PUT API
+        // 更新已有产品
+        console.log('[handleSave] Updating product, id:', selectedItem._backendId);
         const res = await fetch(`/api/products/${selectedItem._backendId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(backendProduct),
         });
-        if (!res.ok) throw new Error('Save failed');
-      }
-
-      // 更新本地 React state
-      if (selectedItem) {
-        setProducts(prev => prev.map(p =>
-          p.id === selectedItem.id
-            ? {
-                ...p,
-                name: displayName,
-                category: editCategory,
-                status: editStatus,
-                images: [...productImages],
-                namesByLang: { ...namesByLang },
-                descriptionsByLang: { ...descriptionsByLang },
-                specsByLang: {
-                  en: specsByLang.en.map(s => ({ ...s })),
-                  zh: specsByLang.zh.map(s => ({ ...s })),
-                  vi: specsByLang.vi.map(s => ({ ...s })),
-                  ph: specsByLang.ph.map(s => ({ ...s })),
-                },
-                featuresByLang: {
-                  en: [...featuresByLang.en],
-                  zh: [...featuresByLang.zh],
-                  vi: [...featuresByLang.vi],
-                  ph: [...featuresByLang.ph],
-                },
-              }
-            : p
-        ));
+        console.log('[handleSave] PUT response:', res.status);
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(`Save failed: ${res.status} - ${errText}`);
+        }
+        const updatedProduct = await res.json();
+        console.log('[handleSave] updatedProduct:', updatedProduct);
       } else {
         // 新建产品
-        const newId = Math.max(0, ...products.map(p => p.id)) + 1;
-        const newProduct: Product = {
-          id: newId,
-          name: displayName,
-          category: editCategory,
-          status: editStatus,
-          images: [...productImages],
-          namesByLang: { ...namesByLang },
-          descriptionsByLang: { ...descriptionsByLang },
-          specsByLang: {
-            en: specsByLang.en.map(s => ({ ...s })),
-            zh: specsByLang.zh.map(s => ({ ...s })),
-            vi: specsByLang.vi.map(s => ({ ...s })),
-            ph: specsByLang.ph.map(s => ({ ...s })),
-          },
-          featuresByLang: {
-            en: [...featuresByLang.en],
-            zh: [...featuresByLang.zh],
-            vi: [...featuresByLang.vi],
-            ph: [...featuresByLang.ph],
-          },
-        };
-        setProducts(prev => [...prev, newProduct]);
+        console.log('[handleSave] Creating new product');
+        const res = await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(backendProduct),
+        });
+        console.log('[handleSave] POST response:', res.status);
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(`Save failed: ${res.status} - ${errText}`);
+        }
+        const savedProduct = await res.json();
+        console.log('[handleSave] savedProduct:', savedProduct);
+        newId = savedProduct.id;
       }
 
-      showToast('产品已保存');
-    } catch (err) {
-      console.error('Save error:', err);
-      showToast('保存失败，请重试');
+      // 保存成功 - 立即显示成功消息，1秒后隐藏loading
+      showToast('产品保存成功！');
+      setView('list');
+      setTimeout(() => {
+        setIsSaving(false);
+      }, 1000);
+      
+      // 后台静默刷新列表（不阻塞UI）
+      fetch('/api/products').then(async (res) => {
+        if (res.ok) {
+          const apiProducts = await res.json();
+          const converted: Product[] = apiProducts.map((p: any, index: number) => ({
+            id: index + 1,
+            name: p.name_en || p.name_zh || 'Product',
+            category: getCategoryName(p.category_id),
+            status: p.status === 'active' ? '上架' : '下架',
+            images: p.images || [],
+            _backendId: p.id,
+            namesByLang: {
+              en: p.name_en || '',
+              zh: p.name_zh || '',
+              vi: p.name_vi || '',
+              ph: p.name_tl || '',
+            },
+            descriptionsByLang: {
+              en: p.description_en || '',
+              zh: p.description_zh || '',
+              vi: p.description_vi || '',
+              ph: p.description_tl || '',
+            },
+            specsByLang: {
+              en: (p.specs || []).map((s: any, i: number) => ({ id: i, name: s.k_en || '', value: s.v_en || '' })),
+              zh: (p.specs || []).map((s: any, i: number) => ({ id: i, name: s.k_zh || s.k_en || '', value: s.v_zh || s.v_en || '' })),
+              vi: (p.specs || []).map((s: any, i: number) => ({ id: i, name: s.k_vi || s.k_en || '', value: s.v_vi || s.v_en || '' })),
+              ph: (p.specs || []).map((s: any, i: number) => ({ id: i, name: s.k_tl || s.k_en || '', value: s.v_tl || s.v_en || '' })),
+            },
+            featuresByLang: {
+              en: Array.isArray(p.features_en) ? p.features_en : (p.features_en ? p.features_en.split('; ').filter(f => f) : ['']),
+              zh: Array.isArray(p.features_zh) ? p.features_zh : (p.features_zh ? p.features_zh.split('; ').filter(f => f) : ['']),
+              vi: Array.isArray(p.features_vi) ? p.features_vi : (p.features_vi ? p.features_vi.split('; ').filter(f => f) : ['']),
+              ph: Array.isArray(p.features_tl) ? p.features_tl : (p.features_tl ? p.features_tl.split('; ').filter(f => f) : ['']),
+            },
+          }));
+          setProducts(converted);
+          localStorage.setItem('jinyu_products', JSON.stringify(converted));
+        }
+      }).catch(() => {});
+    } catch (err: any) {
+      setIsSaving(false);
+      console.error('[handleSave] Error:', err);
+      const errMsg = err?.message || err?.toString() || '未知错误';
+      showToast('保存失败: ' + errMsg);
     }
   };
 
-  const handleDelete = () => {
-    if (deleteModal) {
+  const handleDelete = async () => {
+    if (deleteModal && deleteModal._backendId) {
+      try {
+        const res = await fetch(`/api/products/${deleteModal._backendId}`, {
+          method: 'DELETE',
+        });
+        if (!res.ok) throw new Error('Delete failed');
+        
+        // 刷新列表
+        const res2 = await fetch('/api/products');
+        if (res2.ok) {
+          const apiProducts = await res2.json();
+          const converted: Product[] = apiProducts.map((p: any, index: number) => ({
+            id: index + 1,
+            name: p.name_en || p.name_zh || 'Product',
+            category: getCategoryName(p.category_id),
+            status: p.status === 'active' ? '上架' : '下架',
+            images: p.images && p.images.length > 0 ? p.images : ['https://picsum.photos/seed/' + p.id + '/100/100'],
+            _backendId: p.id,
+            namesByLang: {
+              en: p.name_en || '',
+              zh: p.name_zh || '',
+              vi: p.name_vi || '',
+              ph: p.name_tl || '',
+            },
+          }));
+          setProducts(converted);
+        }
+      } catch (e) {
+        showToast('删除失败');
+        return;
+      }
+    } else {
       setProducts(prev => prev.filter(p => p.id !== deleteModal.id));
     }
     setDeleteModal(null);
@@ -500,9 +606,30 @@ export default function Products() {
             </div>
           </div>
           {!isReadOnly && (
-            <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center transition-colors shadow-sm">
-              <Save className="w-4 h-4 mr-2" />
-              保存产品
+            <button 
+              type="button"
+              onClick={(e) => {
+                console.log('Save button clicked!');
+                handleSave();
+              }} 
+              disabled={isSaving}
+              className={`bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center transition-colors shadow-sm cursor-pointer ${isSaving ? 'opacity-70 cursor-wait' : ''}`}
+              style={{ pointerEvents: 'auto', position: 'relative', zIndex: 9999 }}
+            >
+              {isSaving ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  保存中...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  保存产品
+                </>
+              )}
             </button>
           )}
         </div>
@@ -520,14 +647,24 @@ export default function Products() {
               <label className="block text-sm font-semibold text-gray-900 mb-2">分类</label>
               <select
                 disabled={isReadOnly}
-                value={editCategory}
-                onChange={(e) => setEditCategory(e.target.value)}
+                value={editCategoryId}
+                onChange={(e) => {
+                  const cat = categoryList.find(c => c.id === e.target.value);
+                  setEditCategoryId(e.target.value);
+                  setEditCategory(cat ? cat.name_en : e.target.value);
+                }}
                 className={`w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none transition-all ${isReadOnly ? 'text-gray-500 cursor-not-allowed' : 'focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-500'}`}
               >
-                <option>Advertising Media</option>
-                <option>Advertising Panel</option>
-                <option>Display Stand</option>
-                <option>Accessory</option>
+                {categoryList.length > 0 ? categoryList.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name_en}</option>
+                )) : (
+                  <>
+                    <option value="advertising-media">Advertising Media</option>
+                    <option value="advertising-panel">Advertising Panel</option>
+                    <option value="display-stand">Display Stand</option>
+                    <option value="accessory-tools">Accessory Tools</option>
+                  </>
+                )}
               </select>
             </div>
             <div>
@@ -873,11 +1010,17 @@ export default function Products() {
                 onChange={(e) => setFilterCategory(e.target.value)}
                 className="w-full pl-10 pr-8 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none appearance-none cursor-pointer"
               >
-                <option>所有分类</option>
-                <option>Advertising Media</option>
-                <option>Advertising Panel</option>
-                <option>Display Stand</option>
-                <option>Accessory</option>
+                <option value="所有分类">所有分类</option>
+                {categoryList.length > 0 ? categoryList.map(cat => (
+                  <option key={cat.id} value={cat.name_en}>{cat.name_en}</option>
+                )) : (
+                  <>
+                    <option>Advertising Media</option>
+                    <option>Advertising Panel</option>
+                    <option>Display Stand</option>
+                    <option>Accessory Tools</option>
+                  </>
+                )}
               </select>
             </div>
           </div>
@@ -903,7 +1046,13 @@ export default function Products() {
                 <tr key={product.id} className="hover:bg-gray-50/50 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center">
-                      <img src={product.images[0] || 'https://picsum.photos/seed/placeholder/100/100'} alt={product.name} className="w-12 h-12 rounded-lg object-cover border border-gray-200" />
+                      {product.images && product.images[0] ? (
+                        <img src={product.images[0]} alt={product.name} className="w-12 h-12 rounded-lg object-cover border border-gray-200" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg border border-gray-200 bg-gray-100 flex items-center justify-center">
+                          <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        </div>
+                      )}
                       <div className="ml-4">
                         <div className="text-sm font-bold text-gray-900">{product.namesByLang?.en || product.name}</div>
 

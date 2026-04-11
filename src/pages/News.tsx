@@ -1,6 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Eye, ArrowLeft, Sparkles, Save, CheckCircle2, X } from 'lucide-react';
 import ImageUploader from '@/src/components/ImageUploader';
+
+// Markdown 转 HTML（处理 **粗体** 和换行）
+function markdownToHtml(text: string): string {
+  if (!text) return '';
+  // 1. 先转义 HTML 特殊字符（防止 XSS）
+  let html = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+  // 2. 段落：多个换行或双换行 → </p><p>
+  html = '<p>' + html.replace(/\n{2,}/g, '</p><p>') + '</p>';
+  // 3. 单换行 → <br>
+  html = html.replace(/\n/g, '<br>');
+  // 4. **粗体** → <strong>
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // 5. 清理空段落
+  html = html.replace(/<p><\/p>/g, '');
+  html = html.replace(/<p>(<br>)+/g, '<p>');
+  html = html.replace(/(<br>)+<\/p>/g, '</p>');
+  return html;
+}
 
 type NewsLangData = { seoTitle: string; title: string; slug: string; alt: string; content: string };
 type NewsItem = {
@@ -12,25 +34,55 @@ type NewsItem = {
   langData: Record<string, NewsLangData>;
 };
 
-const defaultNews: NewsItem[] = [
-  { id: 1, date: '2024-02-15', status: '已发布', views: 342, images: [], langData: { zh: { seoTitle: '金昱荣获ISO认证', title: '金昱广告材料荣获ISO 9001质量管理体系认证', slug: 'jinyu-iso-9001', alt: 'ISO认证', content: '金昱广告材料成功获得ISO 9001质量管理体系认证。' } } },
-  { id: 2, date: '2023-08-10', status: '已发布', views: 521, images: [], langData: { zh: { seoTitle: '产能扩建完工', title: '2023年产能扩建项目顺利完工，引进国际先进设备', slug: 'capacity-expansion-2023', alt: '新生产线', content: '2023年产能扩建项目顺利完工。' } } },
-];
+const defaultNews: NewsItem[] = [];
 
-const NEWS_STORAGE_KEY = 'jinyu_admin_news';
-
-function loadNews(): NewsItem[] {
+// API calls
+async function fetchNews(): Promise<NewsItem[]> {
   try {
-    const stored = localStorage.getItem(NEWS_STORAGE_KEY);
-    if (stored) { const p = JSON.parse(stored); if (Array.isArray(p) && p.length > 0) return p; }
+    const res = await fetch('/api/news');
+    if (res.ok) {
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    }
   } catch { /* ignore */ }
   return defaultNews;
+}
+
+async function createNewsAPI(item: NewsItem): Promise<NewsItem | null> {
+  try {
+    const res = await fetch('/api/news', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item),
+    });
+    if (res.ok) return await res.json();
+  } catch { /* ignore */ }
+  return null;
+}
+
+async function updateNewsAPI(item: NewsItem): Promise<boolean> {
+  try {
+    const res = await fetch('/api/news/' + item.id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item),
+    });
+    return res.ok;
+  } catch { return false; }
+}
+
+async function deleteNewsAPI(id: number): Promise<boolean> {
+  try {
+    const res = await fetch('/api/news/' + id, { method: 'DELETE' });
+    return res.ok;
+  } catch { return false; }
 }
 
 let nextNewsId = 10;
 
 export default function News() {
-  const [newsList, setNewsList] = useState<NewsItem[]>(loadNews);
+  const [newsList, setNewsList] = useState<NewsItem[]>(defaultNews);
+  const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'list' | 'edit' | 'details'>('list');
   const [activeLang, setActiveLang] = useState('en');
   const [showAIToast, setShowAIToast] = useState(false);
@@ -45,8 +97,16 @@ export default function News() {
     ph: { seoTitle: '', title: '', slug: '', alt: '', content: '' },
   });
 
-  // Persist to localStorage
-  React.useEffect(() => { localStorage.setItem(NEWS_STORAGE_KEY, JSON.stringify(newsList)); }, [newsList]);
+  // 从 API 加载数据
+  useEffect(() => {
+    fetchNews().then(data => {
+      setNewsList(data);
+      // 计算下一个 ID
+      const maxId = data.reduce((max, n) => Math.max(max, n.id || 0), 0);
+      nextNewsId = maxId + 1;
+      setLoading(false);
+    });
+  }, []);
 
   React.useEffect(() => {
     if (selectedItem) {
@@ -135,15 +195,29 @@ export default function News() {
     setTimeout(() => setShowAIToast(false), 4000);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    // 保存前将 Markdown 转为 HTML
+    const processedData: Record<string, NewsLangData> = {};
+    for (const [lang, data] of Object.entries(newsDataByLang)) {
+      processedData[lang] = {
+        ...data,
+        content: markdownToHtml(data.content),
+      };
+    }
+
     if (selectedItem) {
-      setNewsList(prev => prev.map(n => {
-        if (n.id === selectedItem.id) {
-          return { ...n, images: editImages, langData: { ...n.langData, ...newsDataByLang } };
-        }
-        return n;
-      }));
-      showToast('新闻保存成功');
+      const updated: NewsItem = {
+        ...selectedItem,
+        images: editImages,
+        langData: { ...selectedItem.langData, ...processedData },
+      };
+      const ok = await updateNewsAPI(updated);
+      if (ok) {
+        setNewsList(prev => prev.map(n => n.id === selectedItem.id ? updated : n));
+        showToast('新闻保存成功');
+      } else {
+        showToast('保存失败，请重试');
+      }
     } else {
       const newId = nextNewsId++;
       const today = new Date().toISOString().slice(0, 10);
@@ -153,19 +227,29 @@ export default function News() {
         status: '已发布',
         views: 0,
         images: editImages,
-        langData: { ...newsDataByLang },
+        langData: { ...processedData },
       };
-      setNewsList(prev => [...prev, newItem]);
-      setSelectedItem(newItem);
-      showToast('新闻创建成功');
+      const created = await createNewsAPI(newItem);
+      if (created) {
+        setNewsList(prev => [...prev, created]);
+        setSelectedItem(created);
+        showToast('新闻创建成功');
+      } else {
+        showToast('创建失败，请重试');
+      }
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (deleteModal) {
-      setNewsList(prev => prev.filter(n => n.id !== deleteModal.id));
+      const ok = await deleteNewsAPI(deleteModal.id);
+      if (ok) {
+        setNewsList(prev => prev.filter(n => n.id !== deleteModal.id));
+        showToast('新闻删除成功');
+      } else {
+        showToast('删除失败，请重试');
+      }
       setDeleteModal(null);
-      showToast('新闻删除成功');
     }
   };
 

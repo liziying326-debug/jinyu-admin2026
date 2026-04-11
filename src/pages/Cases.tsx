@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Plus, Edit, Trash2, ArrowLeft, Sparkles, Save, CheckCircle2, Eye, X, MapPin } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Edit, Trash2, ArrowLeft, Sparkles, Save, CheckCircle2, Eye, X, Video } from 'lucide-react';
 import ImageUploader from '@/src/components/ImageUploader';
+import VideoUploader from '@/src/components/VideoUploader';
 
 type CaseItem = {
   id: number;
@@ -11,26 +12,11 @@ type CaseItem = {
   date: string;
   images: string[];
   desc: string;
+  video?: string;
   langData: Record<string, { title: string; seoTitle: string; h1Title: string; slug: string; alt: string; content: string }>;
 };
 
-const initialCases: CaseItem[] = [
-  { id: 1, region: 'Vietnam', category: 'Outdoor Billboards', title: 'Ho Chi Minh City Highway Billboard', client: 'VietAd Agency', date: '2023-11-15', images: ['https://picsum.photos/seed/vietnam-billboard/150/100'], desc: 'Large-scale outdoor billboard in Ho Chi Minh City. Engineered with premium weather-resistant advertising materials.', langData: {} },
-  { id: 2, region: 'Philippines', category: 'Store Signage', title: 'Manila Retail Storefront Signage', client: 'Manila Retail Group', date: '2023-09-20', images: ['https://picsum.photos/seed/ph-store/150/100'], desc: 'Durable store signage installed in Manila. Utilizing top-grade UV-resistant and waterproof materials.', langData: {} },
-  { id: 3, region: 'Vietnam', category: 'Traffic Reflection', title: 'Hanoi Highway Reflective Signs', client: 'Vietnam Transport Dept', date: '2023-10-05', images: ['https://picsum.photos/seed/vietnam-traffic/150/100'], desc: 'High-visibility traffic reflective signs deployed across Hanoi highways.', langData: {} },
-  { id: 4, region: 'Philippines', category: 'Car Wraps', title: 'Cebu Commercial Fleet Wraps', client: 'Cebu Logistics', date: '2023-12-10', images: ['https://picsum.photos/seed/ph-carwrap/150/100'], desc: 'Commercial vehicle wraps for a delivery fleet in Cebu.', langData: {} },
-  { id: 5, region: 'Vietnam', category: 'Mall Lightboxes', title: 'Da Nang Shopping Mall Lightboxes', client: 'Da Nang Plaza', date: '2024-01-20', images: ['https://picsum.photos/seed/vietnam-lightbox/150/100'], desc: 'Vibrant indoor and semi-outdoor mall lightboxes in Da Nang.', langData: {} },
-];
-
-const STORAGE_KEY = 'jinyu_material_cases';
-
-function loadCases(): CaseItem[] {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) { const p = JSON.parse(stored); if (Array.isArray(p) && p.length > 0) return p; }
-  } catch { /* ignore */ }
-  return initialCases;
-}
+const initialCases: CaseItem[] = [];
 
 const emptyLangData = () => ({
   en: { title: '', seoTitle: '', h1Title: '', slug: '', alt: '', content: '' },
@@ -39,8 +25,63 @@ const emptyLangData = () => ({
   ph: { title: '', seoTitle: '', h1Title: '', slug: '', alt: '', content: '' },
 });
 
+// API calls
+async function fetchCases(): Promise<CaseItem[]> {
+  try {
+    const res = await fetch('/api/cases');
+    if (res.ok) {
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    }
+  } catch { /* ignore */ }
+  return initialCases;
+}
+
+async function saveAllCases(cases: CaseItem[]): Promise<boolean> {
+  try {
+    // Use bulk save: PUT /api/cases with full array
+    await fetch('/api/cases', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cases),
+    });
+    return true;
+  } catch { return false; }
+}
+
+async function createCase(newCase: CaseItem): Promise<CaseItem | null> {
+  try {
+    const res = await fetch('/api/cases', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newCase),
+    });
+    if (res.ok) return await res.json();
+  } catch { /* ignore */ }
+  return null;
+}
+
+async function updateCase(updated: CaseItem): Promise<boolean> {
+  try {
+    const res = await fetch('/api/cases/' + updated.id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated),
+    });
+    return res.ok;
+  } catch { return false; }
+}
+
+async function deleteCase(id: number): Promise<boolean> {
+  try {
+    const res = await fetch('/api/cases/' + id, { method: 'DELETE' });
+    return res.ok;
+  } catch { return false; }
+}
+
 export default function Cases() {
-  const [cases, setCases] = useState<CaseItem[]>(loadCases);
+  const [cases, setCases] = useState<CaseItem[]>(initialCases);
+  const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'list' | 'edit' | 'details'>('list');
   const [activeLang, setActiveLang] = useState('en');
   const [showAIToast, setShowAIToast] = useState(false);
@@ -55,10 +96,16 @@ export default function Cases() {
   const [editDate, setEditDate] = useState('');
   const [editImages, setEditImages] = useState<string[]>([]);
   const [editDesc, setEditDesc] = useState('');
+  const [editVideo, setEditVideo] = useState('');
   // 已移除旧的 editImage（单图 URL）字段，统一使用 editImages（多图数组）
 
-  // 持久化
-  React.useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(cases)); }, [cases]);
+  // 从 API 加载数据
+  useEffect(() => {
+    fetchCases().then(data => {
+      setCases(data);
+      setLoading(false);
+    });
+  }, []);
 
   const [caseDataByLang, setCaseDataByLang] = useState<Record<string, { title: string; seoTitle: string; h1Title: string; slug: string; alt: string; content: string }>>(emptyLangData());
 
@@ -72,6 +119,7 @@ export default function Cases() {
       setEditDate(selectedItem.date);
       setEditImages(selectedItem.images || []);
       setEditDesc(selectedItem.desc);
+      setEditVideo(selectedItem.video || '');
       const ld = selectedItem.langData || {};
       setCaseDataByLang({
         en: ld.en || { title: selectedItem.title, seoTitle: selectedItem.title, h1Title: selectedItem.title, slug: selectedItem.title.toLowerCase().replace(/\s+/g, '-'), alt: selectedItem.title, content: selectedItem.desc },
@@ -87,6 +135,7 @@ export default function Cases() {
       setEditDate('');
       setEditImages([]);
       setEditDesc('');
+      setEditVideo('');
       setCaseDataByLang(emptyLangData());
     }
   }, [selectedItem]);
@@ -257,7 +306,7 @@ export default function Cases() {
     setShowAIToast(false);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // 保存前：把当前语言的 title 同步到各语言槽的 title 字段（确保 title 多语言化）
     const titleToSave = caseDataByLang[activeLang]?.title || editTitle;
     const syncedData = { ...caseDataByLang };
@@ -268,9 +317,9 @@ export default function Cases() {
     });
 
     if (selectedItem) {
-      // 更新已有案例：留在当前页
-      setCases(prev => prev.map(c => c.id === selectedItem.id ? {
-        ...c,
+      // 更新已有案例
+      const updated: CaseItem = {
+        ...selectedItem,
         region: editRegion,
         category: editCategory,
         title: syncedData.en.title || syncedData.zh.title || titleToSave,
@@ -278,11 +327,18 @@ export default function Cases() {
         date: editDate,
         images: editImages,
         desc: editDesc,
+        video: editVideo,
         langData: syncedData,
-      } : c));
-      showToast('案例保存成功');
+      };
+      const ok = await updateCase(updated);
+      if (ok) {
+        setCases(prev => prev.map(c => c.id === selectedItem.id ? updated : c));
+        showToast('保存成功 ✓');
+      } else {
+        showToast('保存失败，请重试');
+      }
     } else {
-      // 新增案例：跳转回列表
+      // 新增案例
       const newCase: CaseItem = {
         id: Date.now(),
         region: editRegion,
@@ -292,20 +348,31 @@ export default function Cases() {
         date: editDate,
         images: editImages,
         desc: editDesc,
+        video: editVideo,
         langData: syncedData,
       };
-      setCases(prev => [newCase, ...prev]);
-      showToast('案例发布成功');
-      setView('list');
-      setSelectedItem(null);
+      const created = await createCase(newCase);
+      if (created) {
+        setCases(prev => [created, ...prev]);
+        showToast('案例发布成功');
+        setView('list');
+        setSelectedItem(null);
+      } else {
+        showToast('发布失败，请重试');
+      }
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteModal) return;
-    setCases(prev => prev.filter(c => c.id !== deleteModal.id));
+    const ok = await deleteCase(deleteModal.id);
+    if (ok) {
+      setCases(prev => prev.filter(c => c.id !== deleteModal.id));
+      showToast('案例删除成功');
+    } else {
+      showToast('删除失败，请重试');
+    }
     setDeleteModal(null);
-    showToast('案例删除成功');
   };
 
   const filteredCases = regionFilter === 'All'
@@ -335,14 +402,14 @@ export default function Cases() {
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{isReadOnly ? '案例详情' : '编辑案例'}</h1>
-              <p className="text-sm text-gray-500 mt-1">{isReadOnly ? '查看案例内容与多语言 SEO 配置。' : '编辑案例的多语言详细信息。'}</p>
+              <h1 className="text-2xl font-bold text-gray-900">{isReadOnly ? '案例/视频详情' : '编辑案例/视频'}</h1>
+              <p className="text-sm text-gray-500 mt-1">{isReadOnly ? '查看案例内容、视频与多语言 SEO 配置。' : '编辑案例/视频的多语言详细信息。'}</p>
             </div>
           </div>
           {!isReadOnly && (
             <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center transition-colors shadow-sm">
               <Save className="w-4 h-4 mr-2" />
-              保存案例
+              保存
             </button>
           )}
         </div>
@@ -401,6 +468,24 @@ export default function Cases() {
                   </div>
                 ) : (
                   <div className="text-sm text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200 py-6 text-center">暂无图片</div>
+                )}
+              </div>
+            )}
+
+            {/* 案例视频：详情模式展示 */}
+            {isReadOnly && selectedItem && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">案例视频</label>
+                {selectedItem.video ? (
+                  <div className="rounded-xl border border-gray-200 overflow-hidden bg-gray-900">
+                    <video
+                      src={selectedItem.video}
+                      controls
+                      className="w-full max-h-80 object-contain"
+                    />
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200 py-6 text-center">暂无视频</div>
                 )}
               </div>
             )}
@@ -506,6 +591,13 @@ export default function Cases() {
                       showPrimary={true}
                     />
                   </div>
+                  <div className="md:col-span-2">
+                    <VideoUploader
+                      value={editVideo}
+                      onChange={setEditVideo}
+                      label="案例视频"
+                    />
+                  </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-900 mb-1.5">标题 <span className="text-xs text-gray-400 font-normal ml-1">({activeLang.toUpperCase()})</span></label>
                     <input
@@ -551,12 +643,12 @@ export default function Cases() {
 
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">案例管理</h1>
-          <p className="text-sm text-gray-500 mt-1">按地区管理广告工程案例，展示防水耐用的解决方案。</p>
+          <h1 className="text-2xl font-bold text-gray-900">案例/视频</h1>
+          <p className="text-sm text-gray-500 mt-1">管理广告工程案例和视频，展示防水耐用的解决方案。</p>
         </div>
         <button onClick={() => { setSelectedItem(null); setView('edit'); }} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium flex items-center transition-colors shadow-sm">
           <Plus className="w-4 h-4 mr-2" />
-          发布新案例
+          新增案例
         </button>
       </div>
 
@@ -577,23 +669,21 @@ export default function Cases() {
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden max-w-7xl mx-auto">
-        <div>
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto max-w-7xl mx-auto">
+        <div className="min-w-[600px]">
           <table className="w-full text-left border-collapse table-fixed">
             <colgroup>
               <col style={{width: '88px'}} />
-              <col />
-              <col style={{width: '120px'}} />
-              <col style={{width: '180px'}} />
-              <col style={{width: '110px'}} />
+              <col style={{width: '220px'}} />
+              <col style={{width: '130px'}} />
+              <col style={{width: '100px'}} />
             </colgroup>
             <thead>
               <tr className="bg-gray-50/50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-100">
                 <th className="px-4 py-4 font-semibold">图片</th>
                 <th className="px-4 py-4 font-semibold">标题</th>
-                <th className="px-2 py-4 font-semibold">地区</th>
-                <th className="px-2 py-4 font-semibold">分类</th>
-                <th className="pl-0 pr-4 py-4 font-semibold">操作</th>
+                <th className="px-4 py-4 font-semibold">地区</th>
+                <th className="px-4 py-4 font-semibold">操作</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -610,16 +700,12 @@ export default function Cases() {
                     <div className="text-sm font-bold text-gray-900 truncate">{item.title}</div>
                     <div className="text-xs text-gray-400 mt-0.5 truncate">{item.client}</div>
                   </td>
-                  <td className="px-2 py-4">
-                    <div className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700">
-                      <MapPin className="w-3 h-3 mr-1 shrink-0" />
-                      <span className="truncate">{item.region}</span>
+                  <td className="px-4 py-4">
+                    <div className="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
+                      {item.region}
                     </div>
                   </td>
-                  <td className="px-2 py-4 text-xs text-gray-500">
-                    <span className="line-clamp-2">{item.category.replace(/\s*（[^）]*）|\s*\([^)]*\)/g, '')}</span>
-                  </td>
-                  <td className="pl-0 pr-4 py-4">
+                  <td className="px-4 py-4">
                     <div className="flex items-center space-x-1">
                       <button onClick={() => { setSelectedItem(item); setView('details'); }} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="查看">
                         <Eye className="w-4 h-4" />
@@ -636,7 +722,7 @@ export default function Cases() {
               ))}
               {filteredCases.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500 text-sm">
+                  <td colSpan={4} className="px-6 py-8 text-center text-gray-500 text-sm">
                     该地区暂无案例
                   </td>
                 </tr>

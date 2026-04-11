@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Save, AlertCircle, CheckCircle2, Search, RefreshCw } from 'lucide-react';
+import { Save, CheckCircle2, Search, RefreshCw } from 'lucide-react';
 import { i18nApi } from '../api';
 
 type LangKey = 'en' | 'zh' | 'vi' | 'tl';
@@ -168,9 +168,6 @@ export default function GlobalLangConfig() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">全局多语言配置</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            管理 {allKeys.length} 个翻译键 × 4 种语言。数据保存后前台立即可用。
-          </p>
         </div>
         <div className="flex gap-3">
           <button
@@ -188,15 +185,6 @@ export default function GlobalLangConfig() {
             <Save className="w-4 h-4 mr-2" />
             {saving ? '保存中...' : '保存全部'}
           </button>
-        </div>
-      </div>
-
-      {/* Info */}
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start">
-        <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 mr-3 flex-shrink-0" />
-        <div className="text-sm text-amber-800">
-          <p className="font-bold mb-1">使用说明：</p>
-          <p>修改翻译内容后点击「保存全部」，前台页面刷新后即可看到更新。翻译键对应前端 HTML 中的 data-i18n 属性。</p>
         </div>
       </div>
 
