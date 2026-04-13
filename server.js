@@ -1203,7 +1203,19 @@ app.get('/api/stats', (req, res) => {
   Object.entries(dailyData).forEach(([date, count]) => {
     if (typeof count === 'number' && /^\d{4}-\d{2}-\d{2}$/.test(date) && new Date(date) >= sixMonthsAgo) {
       const month = date.slice(0, 7); // YYYY-MM
-      monthlyVisits[month] = (monthlyVisits[month] || 0) + count;
+      monthlyVisits[month] = (monthlyVisits[month] || { visits: 0, inquiries: 0 });
+      monthlyVisits[month].visits += count;
+    }
+  });
+
+  // 将询盘按月统计，确保即使没有访问量数据也能显示询盘柱状图
+  contacts.forEach(c => {
+    if (c.date && /^\d{4}-\d{2}/.test(c.date)) {
+      const month = c.date.slice(0, 7);
+      if (new Date(month + '-01') >= sixMonthsAgo) {
+        if (!monthlyVisits[month]) monthlyVisits[month] = { visits: 0, inquiries: 0 };
+        monthlyVisits[month].inquiries = (monthlyVisits[month].inquiries || 0) + 1;
+      }
     }
   });
 
@@ -1231,10 +1243,12 @@ app.get('/api/stats', (req, res) => {
     todayVisits,
     monthlyVisits: Object.entries(monthlyVisits)
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, visits]) => ({
+      .map(([month, data]) => ({
         name: month.slice(5) + '月', // MM月
-        visits,
-        inquiries: contacts.filter(c => c.date && c.date.startsWith(month)).length
+        visits: typeof data === 'number' ? data : (data.visits || 0),
+        inquiries: typeof data === 'number'
+          ? contacts.filter(c => c.date && c.date.startsWith(month)).length
+          : (data.inquiries || 0)
       })),
     weeklyVisits: Object.entries(weeklyVisits).map(([name, visits]) => ({ name, visits })),
   });
