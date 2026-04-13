@@ -23,7 +23,159 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// ⚠️ 静态文件托管必须放在 API 路由之前，确保访问 / 时返回 index.html
+// ========== FAQ API（读写 translations.json 中的 faq 数据，必须在静态文件之前） ==========
+const faqTabs = ['products', 'ordering', 'shipping', 'quality'];
+
+// 动态获取某个 tab 下已有的最大 FAQ 索引，用于 GET 列表遍历
+function getMaxFaqIndex(t, tab) {
+  const numPrefix = tab === 'products' ? '1' : tab === 'ordering' ? '2' : tab === 'shipping' ? '3' : '4';
+  let maxIdx = 0;
+  for (let i = 1; i <= 50; i++) {
+    if (t.en?.[`faq.q${numPrefix}_${i}`]) maxIdx = i;
+  }
+  return maxIdx;
+}
+
+function loadTranslations() {
+  try {
+    const raw = readFileSync(join(DATA_DIR, 'translations.json'), 'utf8');
+    return JSON.parse(raw);
+  } catch { return { en: {}, zh: {}, vi: {}, tl: {} }; }
+}
+
+function saveTranslations(data) {
+  writeFileSync(join(DATA_DIR, 'translations.json'), JSON.stringify(data, null, 2), 'utf8');
+}
+
+// 从 translations.json 提取 FAQ 列表（支持 lang 参数 + i18n 缓存）
+app.get('/api/faqs', (req, res) => {
+  try {
+    const t = loadTranslations();
+    // 支持语言参数：en/zh/vi/tl，默认 en
+    const reqLang = req.query.lang || 'en';
+    const langMap = { tl: 'tl', fil: 'tl', ph: 'tl', vi: 'vi', zh: 'zh', en: 'en' };
+    const resolvedLang = langMap[reqLang] || 'en';
+    const src = t.en || {};           // 源语言 fallback
+    const dict = t[resolvedLang] || src;
+    const faqs = [];
+    for (const tab of faqTabs) {
+      const maxIdx = getMaxFaqIndex(t, tab);
+      for (let i = 1; i <= maxIdx; i++) {
+        const id = `${tab}_${i}`;
+        const numPrefix = tab === 'products' ? '1' : tab === 'ordering' ? '2' : tab === 'shipping' ? '3' : '4';
+        const qKey = `faq.q${numPrefix}_${i}`;
+        const aKey = `faq.a${numPrefix}_${i}`;
+        const qAlt = `home.faq.${tab}.q${i}`;
+        const aAlt = `home.faq.${tab}.a${i}`;
+        // ── 三层优先级（跟前台 i18n 体系一致）──
+        // ① 原始字段翻译（faq.q1_5 等）
+        // ② i18n 缓存（faq_products_5_question 等，前端 autoTranslate 写入的）
+        // ③ 英文 fallback
+        const i18nQKey = `faq_${id}_question`;
+        const i18nAKey = `faq_${id}_answer`;
+        const question = dict[i18nQKey] || dict[qKey] || src[qKey] || dict[qAlt] || src[qAlt] || '';
+        const answer  = dict[i18nAKey] || dict[aKey] || src[aKey] || dict[aAlt] || src[aAlt] || '';
+        if (question) {
+          faqs.push({ id, tab, index: i, question, answer });
+        }
+      }
+    }
+    res.json({ success: true, data: faqs });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// 更新单个 FAQ
+app.put('/api/faqs/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { question, answer, tab, index } = req.body;
+    if (!question && !answer) return res.status(400).json({ success: false, error: 'Missing fields' });
+
+    const t = loadTranslations();
+    let numPrefix;
+    if (tab === 'products') numPrefix = '1';
+    else if (tab === 'ordering') numPrefix = '2';
+    else if (tab === 'shipping') numPrefix = '3';
+    else numPrefix = '4';
+
+    const idx = index || parseInt(id.split('_')[1]) || 1;
+    const qKey = `faq.q${numPrefix}_${idx}`;
+    const aKey = `faq.a${numPrefix}_${idx}`;
+    const qAlt = `home.faq.${tab}.q${idx}`;
+    const aAlt = `home.faq.${tab}.a${idx}`;
+
+    if (!t.en) t.en = {};
+    t.en[qKey] = question;
+    t.en[aKey] = answer;
+    t.en[qAlt] = question;
+    t.en[aAlt] = answer;
+
+    saveTranslations(t);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// 新增 FAQ
+app.post('/api/faqs', (req, res) => {
+  try {
+    const { question, answer, tab = 'products' } = req.body;
+    if (!question || !answer) return res.status(400).json({ success: false, error: 'Missing fields' });
+
+    const t = loadTranslations();
+    let numPrefix = tab === 'products' ? '1' : tab === 'ordering' ? '2' : tab === 'shipping' ? '3' : '4';
+    let maxIdx = 0;
+    for (let i = 1; i <= 20; i++) {
+      if (t.en?.[`faq.q${numPrefix}_${i}`]) maxIdx = i;
+    }
+    const newIdx = maxIdx + 1;
+    const qKey = `faq.q${numPrefix}_${newIdx}`;
+    const aKey = `faq.a${numPrefix}_${newIdx}`;
+    const qAlt = `home.faq.${tab}.q${newIdx}`;
+    const aAlt = `home.faq.${tab}.a${newIdx}`;
+
+    if (!t.en) t.en = {};
+    t.en[qKey] = question;
+    t.en[aKey] = answer;
+    t.en[qAlt] = question;
+    t.en[aAlt] = answer;
+
+    saveTranslations(t);
+    res.json({ success: true, id: `${tab}_${newIdx}`, index: newIdx });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// 删除 FAQ
+app.delete('/api/faqs/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const [tab, idxStr] = id.split('_');
+    const idx = parseInt(idxStr);
+    let numPrefix = tab === 'products' ? '1' : tab === 'ordering' ? '2' : tab === 'shipping' ? '3' : '4';
+
+    const t = loadTranslations();
+    const keysToRemove = [
+      `faq.q${numPrefix}_${idx}`, `faq.a${numPrefix}_${idx}`,
+      `home.faq.${tab}.q${idx}`, `home.faq.${tab}.a${idx}`
+    ];
+    Object.keys(t).forEach(lang => {
+      if (typeof t[lang] === 'object') {
+        keysToRemove.forEach(k => { delete t[lang][k]; });
+      }
+    });
+    saveTranslations(t);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// ⚠️ 静态文件托管必须放在 API 路由之后
 app.use(express.static(join(__dirname, 'dist')));
 
 // 图片上传目录
@@ -167,6 +319,28 @@ app.post('/api/i18n', (req, res) => {
   res.json({ success: true });
 });
 
+// 写入/更新单个或多个翻译 key（用于前端翻译缓存持久化）
+// PUT /api/i18n/:lang  body: { "key1": "value1", "key2": "value2" }
+app.put('/api/i18n/:lang', (req, res) => {
+  const lang = req.params.lang;
+  const updates = req.body;
+  if (!updates || typeof updates !== 'object') {
+    return res.status(400).json({ error: 'Invalid body, expected object' });
+  }
+  const translations = readDataFile('translations.json', {});
+  if (!translations[lang]) translations[lang] = {};
+  let count = 0;
+  Object.entries(updates).forEach(([key, value]) => {
+    if (value && typeof value === 'string' && value.trim()) {
+      translations[lang][key] = value.trim();
+      count++;
+    }
+  });
+  writeDataFile('translations.json', translations);
+  console.log(`[i18n] PUT ${lang}: ${count} keys saved`);
+  res.json({ success: true, count });
+});
+
 // ============ 翻译代理接口（前端自动翻译用） ============
 
 // 翻译单个文本
@@ -261,8 +435,8 @@ async function getMsToken() {
 }
 
 async function translateText(text, from, to) {
-  // 语言代码映射：微软 API 用 zh-Hans，菲律宾语用 tl（Tagalog）
-  const msLangMap = { 'en': 'en', 'zh': 'zh-Hans', 'vi': 'vi', 'fil': 'fil', 'ph': 'fil' };
+  // 语言代码映射：微软 API 用 zh-Hans，菲律宾语用 fil（注意：前台传 tl，需映射为 fil）
+  const msLangMap = { 'en': 'en', 'zh': 'zh-Hans', 'vi': 'vi', 'tl': 'fil', 'fil': 'fil', 'ph': 'fil' };
   const myLangMap = { 'en': 'en', 'zh': 'zh-CN', 'vi': 'vi', 'tl': 'tl', 'fil': 'tl', 'ph': 'ph' };
 
   // ── 方法1：微软 Edge 翻译（国内可直接访问，无配额限制）──
@@ -307,8 +481,15 @@ async function translateText(text, from, to) {
       const data = await response.json();
       if (data.responseStatus === 200 && data.responseData?.translatedText) {
         let result = data.responseData.translatedText;
-        if (result === result.toUpperCase() && result.length > 20 && text !== text.toUpperCase()) {
-          throw new Error('MYMEMORY_BAD');
+        // 质量检测：过滤 MyMemory 社区脏数据（邮箱、URL、过短匹配）
+        const isGarbage = (
+          result === result.toUpperCase() && result.length > 20 && text !== text.toUpperCase()
+        ) || /[\w.-]+@[\w.-]+\.\w+/.test(result)  // 包含邮箱
+          || /^https?:\/\//i.test(result)           // 以 URL 开头
+          || (result.match && result.match < 0.5);   // 匹配度过低（MyMemory matches 数据）
+        if (isGarbage) {
+          console.warn('[translate] MyMemory garbage detected, falling back to original:', result.substring(0, 40));
+          return text; // 返回原文，不用翻译
         }
         if (data.responseDetails?.includes('AVAILABLE FREE TRANSLATIONS')) {
           throw new Error('MYMEMORY_QUOTA');
@@ -326,8 +507,8 @@ async function translateText(text, from, to) {
 // 批量翻译多个文本（利用微软 API 原生多文本请求，效率最高）
 // 返回与输入数组等长的翻译结果数组
 async function translateBatch(texts, from, to) {
-  // 微软 API 语言代码：菲律宾语用 fil（不是 tl）
-  const msLangMap = { 'en': 'en', 'zh': 'zh-Hans', 'vi': 'vi', 'fil': 'fil', 'ph': 'fil' };
+  // 微软 API 语言代码：菲律宾语用 fil（前台传 tl，需映射为 fil）
+  const msLangMap = { 'en': 'en', 'zh': 'zh-Hans', 'vi': 'vi', 'tl': 'fil', 'fil': 'fil', 'ph': 'fil' };
   const myLangMap = { 'en': 'en', 'zh': 'zh-CN', 'vi': 'vi', 'tl': 'tl', 'fil': 'tl', 'ph': 'tl' };
 
   // ── 方法1：微软 Edge 翻译，一次请求多个文本 ──
@@ -565,6 +746,21 @@ app.delete('/api/news/:id', (req, res) => {
   news = news.filter(n => n.id !== parseInt(req.params.id));
   writeDataFile('news.json', news);
   res.json({ success: true });
+});
+
+// 新闻真实浏览量（从前台写的 news-views.json 读取）
+app.get('/api/news-views', (req, res) => {
+  const viewsFile = join(__dirname, 'data', 'news-views.json');
+  try {
+    if (existsSync(viewsFile)) {
+      const data = JSON.parse(readFileSync(viewsFile, 'utf-8'));
+      res.json(data);
+    } else {
+      res.json({});
+    }
+  } catch {
+    res.json({});
+  }
 });
 
 // 前台兼容：/api/blog → 返回 {success, data} 格式（与 /api/news 相同数据）
@@ -936,6 +1132,21 @@ app.post('/api/auth/register', (req, res) => {
   
   const { password: _, ...safeUser } = newAccount;
   res.json({ success: true, user: safeUser });
+});
+
+// 获取账号密码（仅用于管理页面显示旧密码）
+app.get('/api/auth/accounts/:id/password', (req, res) => {
+  const accounts = readDataFile('accounts.json', []);
+  const account = accounts.find(a => a.id === parseInt(req.params.id));
+  if (account) {
+    try {
+      res.json({ password: atob(account.password || '') });
+    } catch (e) {
+      res.json({ password: '(无法解码)' });
+    }
+  } else {
+    res.status(404).json({ error: 'Account not found' });
+  }
 });
 
 app.put('/api/auth/accounts/:id', (req, res) => {

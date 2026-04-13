@@ -48,6 +48,29 @@ async function fetchNews(): Promise<NewsItem[]> {
   return defaultNews;
 }
 
+// 获取真实浏览量（从 news-views.json，按 slug 统计）
+async function fetchNewsViews(): Promise<Record<string, number>> {
+  try {
+    const res = await fetch('/api/news-views');
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch { /* ignore */ }
+  return {};
+}
+
+// 根据 slug 获取新闻对应的浏览量（优先用 slug，没有则用 news-{id}）
+function getNewsViewsBySlug(news: NewsItem, viewsMap: Record<string, number>): number {
+  const slug = news.langData?.en?.slug || '';
+  // 优先用英文 slug
+  if (slug && viewsMap[slug] !== undefined) {
+    return viewsMap[slug];
+  }
+  // 没有 slug 则用 news-{id} 作为 fallback（前台 normalizePost 的逻辑）
+  const fallbackSlug = 'news-' + news.id;
+  return viewsMap[fallbackSlug] || 0;
+}
+
 async function createNewsAPI(item: NewsItem): Promise<NewsItem | null> {
   try {
     const res = await fetch('/api/news', {
@@ -84,8 +107,7 @@ export default function News() {
   const [newsList, setNewsList] = useState<NewsItem[]>(defaultNews);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'list' | 'edit' | 'details'>('list');
-  const [activeLang, setActiveLang] = useState('en');
-  const [showAIToast, setShowAIToast] = useState(false);
+  const [activeLang] = useState('en');
   const [toastMsg, setToastMsg] = useState('');
   const [deleteModal, setDeleteModal] = useState<NewsItem | null>(null);
   const [selectedItem, setSelectedItem] = useState<NewsItem | null>(null);
@@ -97,12 +119,17 @@ export default function News() {
     ph: { seoTitle: '', title: '', slug: '', alt: '', content: '' },
   });
 
-  // 从 API 加载数据
+  // 从 API 加载数据（新闻列表 + 真实浏览量）
   useEffect(() => {
-    fetchNews().then(data => {
-      setNewsList(data);
+    Promise.all([fetchNews(), fetchNewsViews()]).then(([data, viewsMap]) => {
+      // 合并真实浏览量到新闻列表
+      const merged = data.map(news => ({
+        ...news,
+        views: getNewsViewsBySlug(news, viewsMap),
+      }));
+      setNewsList(merged);
       // 计算下一个 ID
-      const maxId = data.reduce((max, n) => Math.max(max, n.id || 0), 0);
+      const maxId = merged.reduce((max, n) => Math.max(max, n.id || 0), 0);
       nextNewsId = maxId + 1;
       setLoading(false);
     });
@@ -137,62 +164,6 @@ export default function News() {
   const showToast = (msg: string) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(''), 3000);
-  };
-
-  const handleAIGenerate = () => {
-    setShowAIToast(true);
-    
-    const currentTitle = newsDataByLang['zh']?.title || '金昱广告材料荣获ISO 9001质量管理体系认证';
-    const generatedData = { ...newsDataByLang };
-    
-    if (currentTitle.includes('ISO')) {
-      generatedData['en'] = { 
-        seoTitle: 'Jinyu Advertising Materials Awarded ISO 9001 Certification | Company News',
-        title: 'Jinyu Advertising Materials Awarded ISO 9001 Quality Management System Certification', 
-        slug: 'jinyu-awarded-iso-9001-certification',
-        alt: 'ISO 9001 Certification Certificate',
-        content: 'We are proud to announce that Jinyu Advertising Materials has successfully obtained the ISO 9001 Quality Management System certification. This achievement reflects our ongoing commitment to providing high-quality products and services to our customers worldwide.' 
-      };
-      generatedData['vi'] = { 
-        seoTitle: 'Vật liệu Quảng cáo Jinyu Đạt Chứng nhận ISO 9001 | Tin tức Công ty',
-        title: 'Vật liệu Quảng cáo Jinyu Đạt Chứng nhận Hệ thống Quản lý Chất lượng ISO 9001', 
-        slug: 'jinyu-dat-chung-nhan-iso-9001',
-        alt: 'Giấy chứng nhận ISO 9001',
-        content: 'Chúng tôi tự hào thông báo rằng Vật liệu Quảng cáo Jinyu đã nhận được chứng nhận Hệ thống Quản lý Chất lượng ISO 9001. Thành tựu này phản ánh cam kết không ngừng của chúng tôi trong việc cung cấp các sản phẩm và dịch vụ chất lượng cao cho khách hàng trên toàn thế giới.' 
-      };
-      generatedData['ph'] = { 
-        seoTitle: 'Jinyu Advertising Materials Ginawaran ng ISO 9001 Certification | Balita ng Kumpanya',
-        title: 'Jinyu Advertising Materials Ginawaran ng ISO 9001 Quality Management System Certification', 
-        slug: 'jinyu-ginawaran-ng-iso-9001-certification',
-        alt: 'Sertipiko ng ISO 9001',
-        content: 'Ipinagmamalaki naming ipahayag na ang Jinyu Advertising Materials ay matagumpay na nakakuha ng ISO 9001 Quality Management System certification. Ang tagumpay na ito ay nagpapakita ng aming patuloy na pangako sa pagbibigay ng mataas na kalidad na mga produkto at serbisyo sa aming mga customer sa buong mundo.' 
-      };
-    } else {
-      generatedData['en'] = { 
-        seoTitle: '2023 Capacity Expansion Project Completed | Jinyu News',
-        title: '2023 Capacity Expansion Project Successfully Completed with Advanced International Equipment', 
-        slug: '2023-capacity-expansion-project-completed',
-        alt: 'New Production Facility',
-        content: 'Our 2023 capacity expansion project has been successfully completed. We have introduced advanced international equipment to further enhance our production efficiency and product quality, ensuring we meet the growing demands of our global clients.' 
-      };
-      generatedData['vi'] = { 
-        seoTitle: 'Hoàn Thành Dự Án Mở Rộng Công Suất 2023 | Tin Tức Jinyu',
-        title: 'Dự Án Mở Rộng Công Suất 2023 Hoàn Thành Tốt Đẹp với Thiết Bị Quốc Tế Tiên Tiến', 
-        slug: 'hoan-thanh-du-an-mo-rong-cong-suat-2023',
-        alt: 'Cơ sở sản xuất mới',
-        content: 'Dự án mở rộng công suất năm 2023 của chúng tôi đã hoàn thành tốt đẹp. Chúng tôi đã giới thiệu các thiết bị quốc tế tiên tiến để nâng cao hơn nữa hiệu quả sản xuất và chất lượng sản phẩm, đảm bảo đáp ứng nhu cầu ngày càng tăng của khách hàng toàn cầu.' 
-      };
-      generatedData['ph'] = { 
-        seoTitle: 'Nakumpleto ang 2023 Capacity Expansion Project | Balita ng Jinyu',
-        title: '2023 Capacity Expansion Project Matagumpay na Nakumpleto gamit ang Advanced International Equipment', 
-        slug: 'nakumpleto-ang-2023-capacity-expansion-project',
-        alt: 'Bagong Pasilidad ng Produksyon',
-        content: 'Ang aming 2023 capacity expansion project ay matagumpay na nakumpleto. Nagpakilala kami ng advanced international equipment upang higit pang mapahusay ang aming kahusayan sa produksyon at kalidad ng produkto, tinitiyak na natutugunan namin ang lumalaking pangangailangan ng aming mga pandaigdigang kliyente.' 
-      };
-    }
-    
-    setNewsDataByLang(generatedData);
-    setTimeout(() => setShowAIToast(false), 4000);
   };
 
   const handleSave = async () => {
@@ -267,12 +238,7 @@ export default function News() {
             <span>{toastMsg}</span>
           </div>
         )}
-        {showAIToast && (
-          <div className="fixed top-6 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full shadow-2xl flex items-center z-50 animate-in slide-in-from-top-4">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 mr-2" />
-            <span>AI草稿已生成！请务必手动检查并修改各语言的 SEO标题、H1、Slug 及 Alt，确认无误后再保存。</span>
-          </div>
-        )}
+
 
         <div className="flex justify-between items-center">
           <div className="flex items-center">
@@ -293,42 +259,7 @@ export default function News() {
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="flex flex-col sm:flex-row border-b border-gray-100 bg-gray-50/50 sm:items-center justify-between pr-4">
-            <div className="flex overflow-x-auto hide-scrollbar">
-              {[
-                { id: 'en', label: 'English (EN)' },
-                { id: 'zh', label: '中文 (ZH)' },
-                { id: 'vi', label: 'Tiếng Việt (VI)' },
-                { id: 'ph', label: 'Filipino (PH)' }
-              ].map(l => (
-                <button 
-                  key={l.id}
-                  onClick={() => setActiveLang(l.id)}
-                  className={`px-6 py-3.5 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeLang === l.id ? 'border-blue-600 text-blue-700 bg-white' : 'border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-100/50'}`}
-                >
-                  {l.label}
-                </button>
-              ))}
-            </div>
-            <div className="p-3 sm:p-0">
-              {!isReadOnly && (
-                <button onClick={handleAIGenerate} className="flex items-center text-sm font-medium text-purple-700 hover:text-purple-800 bg-purple-100 hover:bg-purple-200 px-4 py-2 rounded-lg transition-colors w-full sm:w-auto justify-center">
-                  <Sparkles className="w-4 h-4 mr-1.5" />
-                  AI一键生成中/越/菲草稿
-                </button>
-              )}
-            </div>
-          </div>
-          
           <div className="p-6 space-y-6">
-            <div className="bg-blue-50 border border-blue-100 text-blue-800 text-sm px-4 py-3 rounded-lg flex items-start">
-              <div className="font-medium">
-                {isReadOnly ? '当前正在查看' : '当前正在编辑'} <span className="font-bold uppercase bg-blue-200 px-1.5 py-0.5 rounded text-blue-900 mx-1">{activeLang}</span> 语言版本。
-                <br className="sm:hidden" />
-                <span className="text-blue-700 mt-1 sm:mt-0 block sm:inline">严格拆分规则：SEO标题、H1大标题、正文详情不共用、不自动截取、不互相填充。</span>
-              </div>
-            </div>
-
             {/* 新闻封面图 */}
             {isReadOnly ? (
               selectedItem && (selectedItem.images?.length ?? 0) > 0 && (
@@ -362,8 +293,8 @@ export default function News() {
                 <input 
                   type="text" 
                   disabled={isReadOnly} 
-                  value={newsDataByLang[activeLang]?.seoTitle || ''}
-                  onChange={(e) => setNewsDataByLang(prev => ({ ...prev, [activeLang]: { ...prev[activeLang], seoTitle: e.target.value } }))}
+                  value={newsDataByLang['en']?.seoTitle || ''}
+                  onChange={(e) => setNewsDataByLang(prev => ({ ...prev, en: { ...prev.en, seoTitle: e.target.value } }))}
                   className={`w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none transition-all ${isReadOnly ? 'text-gray-500 cursor-not-allowed' : 'focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-500'}`} 
                   placeholder="用于搜索引擎优化的标题..." 
                 />
@@ -373,8 +304,8 @@ export default function News() {
                 <input 
                   type="text" 
                   disabled={isReadOnly} 
-                  value={newsDataByLang[activeLang]?.title || ''}
-                  onChange={(e) => setNewsDataByLang(prev => ({ ...prev, [activeLang]: { ...prev[activeLang], title: e.target.value } }))}
+                  value={newsDataByLang['en']?.title || ''}
+                  onChange={(e) => setNewsDataByLang(prev => ({ ...prev, en: { ...prev.en, title: e.target.value } }))}
                   className={`w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none transition-all ${isReadOnly ? 'text-gray-500 cursor-not-allowed' : 'focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-500'}`} 
                   placeholder="页面主标题..." 
                 />
@@ -384,8 +315,8 @@ export default function News() {
                 <input 
                   type="text" 
                   disabled={isReadOnly} 
-                  value={newsDataByLang[activeLang]?.slug || ''}
-                  onChange={(e) => setNewsDataByLang(prev => ({ ...prev, [activeLang]: { ...prev[activeLang], slug: e.target.value } }))}
+                  value={newsDataByLang['en']?.slug || ''}
+                  onChange={(e) => setNewsDataByLang(prev => ({ ...prev, en: { ...prev.en, slug: e.target.value } }))}
                   className={`w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none transition-all ${isReadOnly ? 'text-gray-500 cursor-not-allowed' : 'focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-500'}`} 
                   placeholder="例如: iso-9001-certification" 
                 />
@@ -395,8 +326,8 @@ export default function News() {
                 <input 
                   type="text" 
                   disabled={isReadOnly} 
-                  value={newsDataByLang[activeLang]?.alt || ''}
-                  onChange={(e) => setNewsDataByLang(prev => ({ ...prev, [activeLang]: { ...prev[activeLang], alt: e.target.value } }))}
+                  value={newsDataByLang['en']?.alt || ''}
+                  onChange={(e) => setNewsDataByLang(prev => ({ ...prev, en: { ...prev.en, alt: e.target.value } }))}
                   className={`w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none transition-all ${isReadOnly ? 'text-gray-500 cursor-not-allowed' : 'focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-500'}`} 
                   placeholder="描述图片的替代文本..." 
                 />
@@ -408,8 +339,8 @@ export default function News() {
               <div className={`border border-gray-200 rounded-lg overflow-hidden transition-all ${isReadOnly ? 'opacity-70' : 'focus-within:ring-2 focus-within:ring-blue-100 focus-within:border-blue-500'}`}>
                 <textarea 
                   disabled={isReadOnly} 
-                  value={newsDataByLang[activeLang]?.content || ''}
-                  onChange={(e) => setNewsDataByLang(prev => ({ ...prev, [activeLang]: { ...prev[activeLang], content: e.target.value } }))}
+                  value={newsDataByLang['en']?.content || ''}
+                  onChange={(e) => setNewsDataByLang(prev => ({ ...prev, en: { ...prev.en, content: e.target.value } }))}
                   rows={10} 
                   className={`w-full bg-white px-4 py-3 text-sm outline-none resize-y ${isReadOnly ? 'text-gray-500 cursor-not-allowed' : ''}`} 
                   placeholder="在此输入独立的正文详情内容（支持富文本）..."

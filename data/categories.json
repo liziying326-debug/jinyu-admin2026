@@ -3,19 +3,22 @@
     "id": "advertising-media",
     "name_en": "Advertising Media",
     "name_zh": "广告介质",
-    "sort_order": 1
+    "sort_order": 1,
+    "name_tl": "Advertising Media"
   },
   {
     "id": "advertising-panel",
     "name_en": "Advertising Panel",
     "name_zh": "广告面板",
-    "sort_order": 2
+    "sort_order": 2,
+    "name_tl": "Advertising Panel"
   },
   {
     "id": "display-stand",
     "name_en": "Display Stand",
     "name_zh": "展示架",
-    "sort_order": 3
+    "sort_order": 3,
+    "name_tl": "Display Stand"
   },
   {
     "id": "accessory-tools",
@@ -23,7 +26,7 @@
     "name_en": "Accessory Tools",
     "name_zh": "配件工具",
     "name_vi": "Phụ kiện & Công cụ",
-    "name_tl": "Mga Kagamitan at Kasangkapang Pantulong",
+    "name_tl": "Accessory Tools",
     "desc": "High-quality mounting hardware, installation tools and accessories for signage projects",
     "langData": {
       "en": {

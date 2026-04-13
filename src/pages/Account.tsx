@@ -28,6 +28,7 @@ export default function AccountManager({ currentUser }: AccountManagerProps) {
   const [resetConfirm, setResetConfirm] = useState('');
   const [showResetPass, setShowResetPass] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [oldPassword, setOldPassword] = useState<string | null>(null);
 
   useEffect(() => {
     loadAccounts();
@@ -325,7 +326,7 @@ export default function AccountManager({ currentUser }: AccountManagerProps) {
                         <button onClick={() => { setEditingId(account.id); setEditForm({ username: account.username, password: '', role: account.role }); }} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="编辑">
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button onClick={() => { setResetModal(account); setResetPassword(''); setResetConfirm(''); setShowResetPass(false); setShowResetConfirm(false); }} className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" title="重置密码">
+                        <button onClick={async () => { setResetModal(account); setResetPassword(''); setResetConfirm(''); setShowResetPass(false); setShowResetConfirm(false); setOldPassword(null); try { const res = await authApi.getPassword(account.id); setOldPassword(res.password); } catch(e) { setOldPassword('(获取失败)'); } }} className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" title="重置密码">
                           <RotateCcw className="w-4 h-4" />
                         </button>
                         <button
@@ -386,6 +387,15 @@ export default function AccountManager({ currentUser }: AccountManagerProps) {
                 </div>
               </div>
               <div className="space-y-4">
+                {/* 旧密码显示 */}
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <label className="block text-xs font-medium text-gray-500 mb-1">当前密码</label>
+                  <p className="text-sm text-gray-900 font-mono break-all">
+                    {oldPassword === null ? (
+                      <span className="text-gray-400 animate-pulse">加载中...</span>
+                    ) : oldPassword}
+                  </p>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">新密码</label>
                   <div className="relative">

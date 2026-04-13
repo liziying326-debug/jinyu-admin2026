@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, ArrowLeft, Sparkles, Save, CheckCircle2, Eye, X, Video } from 'lucide-react';
+import { Plus, Edit, Trash2, ArrowLeft, Save, CheckCircle2, Eye, Video } from 'lucide-react';
 import ImageUploader from '@/src/components/ImageUploader';
 import VideoUploader from '@/src/components/VideoUploader';
 
@@ -83,8 +83,6 @@ export default function Cases() {
   const [cases, setCases] = useState<CaseItem[]>(initialCases);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'list' | 'edit' | 'details'>('list');
-  const [activeLang, setActiveLang] = useState('en');
-  const [showAIToast, setShowAIToast] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
   const [deleteModal, setDeleteModal] = useState<CaseItem | null>(null);
   const [selectedItem, setSelectedItem] = useState<CaseItem | null>(null);
@@ -145,175 +143,13 @@ export default function Cases() {
     setTimeout(() => setToastMsg(''), 3000);
   };
 
-  const toSlug = (text: string): string => {
-    return text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '');
-  };
-
-  const handleAIGenerate = async () => {
-    setShowAIToast(true);
-    const langData = caseDataByLang;
-
-    // 判断源语言：优先用英文，其次用中文（基于 title/seoTitle/h1Title/content 四个字段）
-    const enSrc = langData.en;
-    const zhSrc = langData.zh;
-    const hasEn = (enSrc?.title?.trim() || enSrc?.seoTitle?.trim() || enSrc?.h1Title?.trim() || enSrc?.content?.trim());
-    const hasZh = (zhSrc?.title?.trim() || zhSrc?.seoTitle?.trim() || zhSrc?.h1Title?.trim() || zhSrc?.content?.trim());
-
-    if (!hasEn && !hasZh) {
-      showToast('请先填写英文或中文的 SEO 标题 / H1 标题 / 内容，再使用 AI 翻译');
-      setShowAIToast(false);
-      return;
-    }
-
-    const translate = async (text: string, from: string, to: string): Promise<string> => {
-      if (!text.trim()) return '';
-      try {
-        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${from}&tl=${to}&dt=t&q=${encodeURIComponent(text)}`;
-        const res = await fetch(url);
-        const data = await res.json();
-        return Array.isArray(data) ? data[0].map((t: string[]) => t[0]).join('') : text;
-      } catch {
-        return text;
-      }
-    };
-
-    // 收集所有需要翻译的文本（标题、SEO标题、H1标题、Alt、内容）
-    const getTransFields = (src: typeof enSrc) => ({
-      title: src?.title?.trim() || '',
-      seoTitle: src?.seoTitle?.trim() || '',
-      h1Title: src?.h1Title?.trim() || '',
-      alt: src?.alt?.trim() || '',
-      content: src?.content?.trim() || '',
-    });
-
-    // 初始化所有语言槽
-    const generated: Record<string, typeof enSrc> = { ...langData };
-    ['en', 'zh', 'vi', 'ph'].forEach(l => {
-      if (!generated[l]) generated[l] = { title: '', seoTitle: '', h1Title: '', slug: '', alt: '', content: '' };
-    });
-
-    if (hasEn) {
-      // 源为英文 → 译 zh / vi / ph（保留 en 不变）
-      const src = getTransFields(enSrc);
-      const baseSlug = toSlug(src.h1Title || src.seoTitle || src.title);
-
-      const [title_zh, seoTitle_zh, h1Title_zh, alt_zh, content_zh] = await Promise.all([
-        translate(src.title, 'en', 'zh'),
-        translate(src.seoTitle || src.h1Title, 'en', 'zh'),
-        translate(src.h1Title, 'en', 'zh'),
-        translate(src.alt, 'en', 'zh'),
-        translate(src.content, 'en', 'zh'),
-      ]);
-      const [title_vi, seoTitle_vi, h1Title_vi, alt_vi, content_vi] = await Promise.all([
-        translate(src.title, 'en', 'vi'),
-        translate(src.seoTitle || src.h1Title, 'en', 'vi'),
-        translate(src.h1Title, 'en', 'vi'),
-        translate(src.alt, 'en', 'vi'),
-        translate(src.content, 'en', 'vi'),
-      ]);
-      const [title_ph, seoTitle_ph, h1Title_ph, alt_ph, content_ph] = await Promise.all([
-        translate(src.title, 'en', 'fil'),
-        translate(src.seoTitle || src.h1Title, 'en', 'fil'),
-        translate(src.h1Title, 'en', 'fil'),
-        translate(src.alt, 'en', 'fil'),
-        translate(src.content, 'en', 'fil'),
-      ]);
-
-      generated.zh = {
-        ...generated.zh,
-        title: generated.zh.title || title_zh,
-        seoTitle: generated.zh.seoTitle || seoTitle_zh,
-        h1Title: generated.zh.h1Title || h1Title_zh,
-        slug: generated.zh.slug || (baseSlug + '-zh'),
-        alt: generated.zh.alt || alt_zh,
-        content: generated.zh.content || content_zh,
-      };
-      generated.vi = {
-        ...generated.vi,
-        title: generated.vi.title || title_vi,
-        seoTitle: generated.vi.seoTitle || seoTitle_vi,
-        h1Title: generated.vi.h1Title || h1Title_vi,
-        slug: generated.vi.slug || (baseSlug + '-vi'),
-        alt: generated.vi.alt || alt_vi,
-        content: generated.vi.content || content_vi,
-      };
-      generated.ph = {
-        ...generated.ph,
-        title: generated.ph.title || title_ph,
-        seoTitle: generated.ph.seoTitle || seoTitle_ph,
-        h1Title: generated.ph.h1Title || h1Title_ph,
-        slug: generated.ph.slug || (baseSlug + '-fil'),
-        alt: generated.ph.alt || alt_ph,
-        content: generated.ph.content || content_ph,
-      };
-    } else {
-      // 源为中文 → 译 en / vi / ph（保留 zh 不变）
-      const src = getTransFields(zhSrc);
-      const baseSlug = toSlug(src.h1Title || src.seoTitle || src.title);
-
-      const [title_en, seoTitle_en, h1Title_en, alt_en, content_en] = await Promise.all([
-        translate(src.title, 'zh', 'en'),
-        translate(src.seoTitle || src.h1Title, 'zh', 'en'),
-        translate(src.h1Title, 'zh', 'en'),
-        translate(src.alt, 'zh', 'en'),
-        translate(src.content, 'zh', 'en'),
-      ]);
-      const [title_vi, seoTitle_vi, h1Title_vi, alt_vi, content_vi] = await Promise.all([
-        translate(src.title, 'zh', 'vi'),
-        translate(src.seoTitle || src.h1Title, 'zh', 'vi'),
-        translate(src.h1Title, 'zh', 'vi'),
-        translate(src.alt, 'zh', 'vi'),
-        translate(src.content, 'zh', 'vi'),
-      ]);
-      const [title_ph, seoTitle_ph, h1Title_ph, alt_ph, content_ph] = await Promise.all([
-        translate(src.title, 'zh', 'fil'),
-        translate(src.seoTitle || src.h1Title, 'zh', 'fil'),
-        translate(src.h1Title, 'zh', 'fil'),
-        translate(src.alt, 'zh', 'fil'),
-        translate(src.content, 'zh', 'fil'),
-      ]);
-
-      generated.en = {
-        ...generated.en,
-        title: generated.en.title || title_en,
-        seoTitle: generated.en.seoTitle || seoTitle_en,
-        h1Title: generated.en.h1Title || h1Title_en,
-        slug: generated.en.slug || baseSlug,
-        alt: generated.en.alt || alt_en,
-        content: generated.en.content || content_en,
-      };
-      generated.vi = {
-        ...generated.vi,
-        title: generated.vi.title || title_vi,
-        seoTitle: generated.vi.seoTitle || seoTitle_vi,
-        h1Title: generated.vi.h1Title || h1Title_vi,
-        slug: generated.vi.slug || (baseSlug + '-vi'),
-        alt: generated.vi.alt || alt_vi,
-        content: generated.vi.content || content_vi,
-      };
-      generated.ph = {
-        ...generated.ph,
-        title: generated.ph.title || title_ph,
-        seoTitle: generated.ph.seoTitle || seoTitle_ph,
-        h1Title: generated.ph.h1Title || h1Title_ph,
-        slug: generated.ph.slug || (baseSlug + '-fil'),
-        alt: generated.ph.alt || alt_ph,
-        content: generated.ph.content || content_ph,
-      };
-    }
-
-    setCaseDataByLang(generated);
-    setShowAIToast(false);
-  };
-
   const handleSave = async () => {
-    // 保存前：把当前语言的 title 同步到各语言槽的 title 字段（确保 title 多语言化）
-    const titleToSave = caseDataByLang[activeLang]?.title || editTitle;
+    // 只同步空语言槽（确保 en/zh/vi/ph 都有对象），不填充其他语言的 title
+    // 让其他语言保持为空，由前台自动翻译
     const syncedData = { ...caseDataByLang };
     (['en', 'zh', 'vi', 'ph'] as const).forEach(l => {
       if (!syncedData[l]) syncedData[l] = { title: '', seoTitle: '', h1Title: '', slug: '', alt: '', content: '' };
-      // 只有空时才填入，避免覆盖已有多语言内容
-      if (!syncedData[l].title && l !== activeLang) syncedData[l].title = titleToSave;
+      // 不再自动填充 title，让前台自动翻译
     });
 
     if (selectedItem) {
@@ -322,7 +158,7 @@ export default function Cases() {
         ...selectedItem,
         region: editRegion,
         category: editCategory,
-        title: syncedData.en.title || syncedData.zh.title || titleToSave,
+        title: syncedData.en?.title || editTitle,
         client: editClient,
         date: editDate,
         images: editImages,
@@ -343,7 +179,7 @@ export default function Cases() {
         id: Date.now(),
         region: editRegion,
         category: editCategory,
-        title: titleToSave,
+        title: syncedData.en?.title || editTitle,
         client: editClient,
         date: editDate,
         images: editImages,
@@ -389,12 +225,6 @@ export default function Cases() {
             <span>{toastMsg}</span>
           </div>
         )}
-        {showAIToast && (
-          <div className="fixed top-6 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full shadow-2xl flex items-center z-50 animate-in slide-in-from-top-4">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 mr-2" />
-            <span>AI 草稿已生成！请审核并编辑各语言的 SEO 标题、H1、Slug 和 Alt 后再保存。</span>
-          </div>
-        )}
 
         <div className="flex justify-between items-center">
           <div className="flex items-center">
@@ -415,39 +245,10 @@ export default function Cases() {
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden max-w-7xl mx-auto">
-          <div className="flex flex-col sm:flex-row border-b border-gray-100 bg-gray-50/50 sm:items-center justify-between pr-4">
-            <div className="flex overflow-x-auto hide-scrollbar">
-              {[
-                { id: 'en', label: 'English (EN)' },
-                { id: 'zh', label: '中文 (ZH)' },
-                { id: 'vi', label: 'Tiếng Việt (VI)' },
-                { id: 'ph', label: 'Filipino (PH)' }
-              ].map(l => (
-                <button
-                  key={l.id}
-                  onClick={() => setActiveLang(l.id)}
-                  className={`px-6 py-3.5 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeLang === l.id ? 'border-blue-600 text-blue-700 bg-white' : 'border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-100/50'}`}
-                >
-                  {l.label}
-                </button>
-              ))}
-            </div>
-            <div className="p-3 sm:p-0">
-              {!isReadOnly && (
-                <button onClick={handleAIGenerate} className="flex items-center text-sm font-medium text-purple-700 hover:text-purple-800 bg-purple-100 hover:bg-purple-200 px-4 py-2 rounded-lg transition-colors w-full sm:w-auto justify-center">
-                  <Sparkles className="w-4 h-4 mr-1.5" />
-                  AI 翻译草稿
-                </button>
-              )}
-            </div>
-          </div>
-
           <div className="p-6 space-y-6">
             <div className="bg-blue-50 border border-blue-100 text-blue-800 text-sm px-4 py-3 rounded-lg flex items-start">
               <div className="font-medium">
-                {isReadOnly ? '当前正在查看' : '当前正在编辑'} <span className="font-bold uppercase bg-blue-200 px-1.5 py-0.5 rounded text-blue-900 mx-1">{activeLang}</span> 语言版本。
-                <br className="sm:hidden" />
-                <span className="text-blue-700 mt-1 sm:mt-0 block sm:inline">严格分离：SEO 标题、H1 标题和内容是独立字段。</span>
+                只编辑英文版本，其他语言由前台自动翻译。
               </div>
             </div>
 
@@ -497,8 +298,8 @@ export default function Cases() {
                 <input
                   type="text"
                   disabled={isReadOnly}
-                  value={caseDataByLang[activeLang]?.seoTitle || ''}
-                  onChange={(e) => setCaseDataByLang(prev => ({ ...prev, [activeLang]: { ...prev[activeLang], seoTitle: e.target.value } }))}
+                  value={caseDataByLang['en']?.seoTitle || ''}
+                  onChange={(e) => setCaseDataByLang(prev => ({ ...prev, en: { ...prev.en, seoTitle: e.target.value } }))}
                   className={`w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none transition-all ${isReadOnly ? 'text-gray-500 cursor-not-allowed' : 'focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-500'}`}
                   placeholder="SEO title for search engines..."
                 />
@@ -508,8 +309,8 @@ export default function Cases() {
                 <input
                   type="text"
                   disabled={isReadOnly}
-                  value={caseDataByLang[activeLang]?.h1Title || ''}
-                  onChange={(e) => setCaseDataByLang(prev => ({ ...prev, [activeLang]: { ...prev[activeLang], h1Title: e.target.value } }))}
+                  value={caseDataByLang['en']?.h1Title || ''}
+                  onChange={(e) => setCaseDataByLang(prev => ({ ...prev, en: { ...prev.en, h1Title: e.target.value } }))}
                   className={`w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none transition-all ${isReadOnly ? 'text-gray-500 cursor-not-allowed' : 'focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-500'}`}
                   placeholder="Page main heading..."
                 />
@@ -519,8 +320,8 @@ export default function Cases() {
                 <input
                   type="text"
                   disabled={isReadOnly}
-                  value={caseDataByLang[activeLang]?.slug || ''}
-                  onChange={(e) => setCaseDataByLang(prev => ({ ...prev, [activeLang]: { ...prev[activeLang], slug: e.target.value } }))}
+                  value={caseDataByLang['en']?.slug || ''}
+                  onChange={(e) => setCaseDataByLang(prev => ({ ...prev, en: { ...prev.en, slug: e.target.value } }))}
                   className={`w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none transition-all ${isReadOnly ? 'text-gray-500 cursor-not-allowed' : 'focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-500'}`}
                   placeholder="e.g. vietnam-outdoor-billboard"
                 />
@@ -530,8 +331,8 @@ export default function Cases() {
                 <input
                   type="text"
                   disabled={isReadOnly}
-                  value={caseDataByLang[activeLang]?.alt || ''}
-                  onChange={(e) => setCaseDataByLang(prev => ({ ...prev, [activeLang]: { ...prev[activeLang], alt: e.target.value } }))}
+                  value={caseDataByLang['en']?.alt || ''}
+                  onChange={(e) => setCaseDataByLang(prev => ({ ...prev, en: { ...prev.en, alt: e.target.value } }))}
                   className={`w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none transition-all ${isReadOnly ? 'text-gray-500 cursor-not-allowed' : 'focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-500'}`}
                   placeholder="Image alt text description..."
                 />
@@ -599,11 +400,11 @@ export default function Cases() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-1.5">标题 <span className="text-xs text-gray-400 font-normal ml-1">({activeLang.toUpperCase()})</span></label>
+                    <label className="block text-sm font-semibold text-gray-900 mb-1.5">标题 <span className="text-xs text-gray-400 font-normal ml-1">(EN)</span></label>
                     <input
                       type="text"
-                      value={caseDataByLang[activeLang]?.title || ''}
-                      onChange={(e) => setCaseDataByLang(prev => ({ ...prev, [activeLang]: { ...prev[activeLang], title: e.target.value } }))}
+                      value={caseDataByLang['en']?.title || ''}
+                      onChange={(e) => setCaseDataByLang(prev => ({ ...prev, en: { ...prev.en, title: e.target.value } }))}
                       disabled={isReadOnly}
                       className={`w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none transition-all ${isReadOnly ? 'text-gray-500 cursor-not-allowed' : 'focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-500'}`}
                       placeholder="案例标题..."
@@ -617,8 +418,8 @@ export default function Cases() {
               <label className="block text-sm font-semibold text-gray-900 mb-1.5">内容 <span className="text-red-500">*</span></label>
               <div className={`border border-gray-200 rounded-lg overflow-hidden transition-all ${isReadOnly ? 'opacity-70' : 'focus-within:ring-2 focus-within:ring-blue-100 focus-within:border-blue-500'}`}>
                 <textarea
-                  value={caseDataByLang[activeLang]?.content || ''}
-                  onChange={(e) => setCaseDataByLang(prev => ({ ...prev, [activeLang]: { ...prev[activeLang], content: e.target.value } }))}
+                  value={caseDataByLang['en']?.content || ''}
+                  onChange={(e) => setCaseDataByLang(prev => ({ ...prev, en: { ...prev.en, content: e.target.value } }))}
                   disabled={isReadOnly}
                   rows={10}
                   className={`w-full bg-white px-4 py-3 text-sm outline-none resize-y ${isReadOnly ? 'text-gray-500 cursor-not-allowed' : ''}`}

@@ -118,6 +118,8 @@ export const authApi = {
       body: { username, password },
     }),
   getAccounts: () => api<any[]>('/api/auth'),
+  getPassword: (id: number) =>
+    api<{ password: string }>(`/api/auth/accounts/${id}/password`),
   register: (data: { username: string; password: string; role?: string }) =>
     api<{ success: boolean; user?: any }>('/api/auth/register', { method: 'POST', body: data }),
   updateAccount: (id: number, data: { password?: string; role?: string }) =>

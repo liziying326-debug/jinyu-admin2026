@@ -1,59 +1,32 @@
 import React, { useState, useMemo } from 'react';
 import { Plus, Edit, Trash2, GripVertical, Eye, X, Sparkles } from 'lucide-react';
 
-// 组件内部使用的 Category 格式
-// id: 后端 API 的字符串 slug（用于和产品关联）
-// _seqId: 组件内部数字序号（用于列表 key 和新建判断）
 type Category = {
   _seqId: number;
   id: string;
-  name: string;
+  name: string;   // 英文名称（显示用）
   count: number;
   desc: string;
-  langData: Record<string, { name: string; desc: string }>;
 };
 
 const defaultInitial: Category[] = [
-  { _seqId: 1, id: 'advertising-media', name: 'Advertising Media (广告耗材)', count: 0, desc: '', langData: { en: { name: 'Advertising Media', desc: '' }, zh: { name: '', desc: '' }, vi: { name: '', desc: '' }, ph: { name: '', desc: '' } } },
-  { _seqId: 2, id: 'advertising-panel', name: 'Advertising Panel (广告板材)', count: 0, desc: '', langData: { en: { name: 'Advertising Panel', desc: '' }, zh: { name: '', desc: '' }, vi: { name: '', desc: '' }, ph: { name: '', desc: '' } } },
-  { _seqId: 3, id: 'display-stand', name: 'Display Stand (展示器材)', count: 0, desc: '', langData: { en: { name: 'Display Stand', desc: '' }, zh: { name: '', desc: '' }, vi: { name: '', desc: '' }, ph: { name: '', desc: '' } } },
-  { _seqId: 4, id: 'accessory-tools', name: 'Accessory (配件)', count: 0, desc: '', langData: { en: { name: 'Accessory', desc: '' }, zh: { name: '', desc: '' }, vi: { name: '', desc: '' }, ph: { name: '', desc: '' } } },
+  { _seqId: 1, id: 'advertising-media', name: 'Advertising Media', count: 0, desc: '' },
+  { _seqId: 2, id: 'advertising-panel', name: 'Advertising Panel', count: 0, desc: '' },
+  { _seqId: 3, id: 'display-stand',     name: 'Display Stand',     count: 0, desc: '' },
+  { _seqId: 4, id: 'accessory-tools',   name: 'Accessory',         count: 0, desc: '' },
 ];
 
-// --- API 格式 <-> 组件格式 互转 ---
 function apiToComponent(apiCat: any, seqId: number): Category {
-  const enName = apiCat.name_en || '';
-  const zhName = apiCat.name_zh || '';
-  const displayName = zhName ? `${enName} (${zhName})` : enName;
   return {
     _seqId: seqId,
     id: String(apiCat.id),
-    name: displayName,
+    name: apiCat.name_en || apiCat.name || '',
     count: 0,
-    desc: '',
-    langData: {
-      en: { name: apiCat.name_en || '', desc: '' },
-      zh: { name: apiCat.name_zh || '', desc: '' },
-      vi: { name: apiCat.name_vi || '', desc: '' },
-      ph: { name: apiCat.name_ph || apiCat.name_tl || '', desc: '' },
-    },
+    desc: apiCat.desc_en || apiCat.desc || '',
   };
 }
 
-function componentToApiPayload(cat: Category): any {
-  return {
-    name_en: cat.langData.en?.name || cat.name,
-    name_zh: cat.langData.zh?.name || '',
-    name_vi: cat.langData.vi?.name || '',
-    name_ph: cat.langData.ph?.name || '',
-  };
-}
-
-let _nextSeq = 10; // 新分类从 10 开始
-
-const emptyLangData = () => ({
-  en: { name: '', desc: '' }, zh: { name: '', desc: '' }, vi: { name: '', desc: '' }, ph: { name: '', desc: '' },
-});
+let _nextSeq = 10;
 
 export default function Categories() {
   const [categories, setCategories] = useState<Category[]>(defaultInitial);
@@ -61,11 +34,12 @@ export default function Categories() {
   const [viewModal, setViewModal] = useState<Category | null>(null);
   const [editModal, setEditModal] = useState<Category | null>(null);
   const [deleteModal, setDeleteModal] = useState<Category | null>(null);
-  const [activeLang, setActiveLang] = useState('en');
-  const [showAIToast, setShowAIToast] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
 
-  // 从后端 API 加载分类列表和产品数量
+  // 编辑表单字段
+  const [editName, setEditName] = useState('');
+  const [editDesc, setEditDesc] = useState('');
+
   React.useEffect(() => {
     async function loadFromAPI() {
       try {
@@ -80,7 +54,6 @@ export default function Categories() {
           cats = list.map((c: any, i: number) => apiToComponent(c, i + 1));
           _nextSeq = list.length + 10;
         }
-        // 从产品数据统计每个分类的产品数量
         let countMap: Record<string, number> = {};
         if (prodRes.ok) {
           const prods = await prodRes.json();
@@ -103,69 +76,35 @@ export default function Categories() {
     loadFromAPI();
   }, []);
 
+  // 打开编辑/查看时同步表单
+  React.useEffect(() => {
+    if (editModal) {
+      setEditName(editModal.name);
+      setEditDesc(editModal.desc);
+    }
+  }, [editModal]);
+
   const categoryCountMap = useMemo(() => {
     const map: Record<string, number> = {};
-    for (const c of categories) {
-      map[c.id] = c.count;
-    }
+    for (const c of categories) map[c.id] = c.count;
     return map;
   }, [categories]);
 
-  const getCount = (cat: Category): number => categoryCountMap[cat.id] || 0;
-
-  const [categoryDataByLang, setCategoryDataByLang] = useState<Record<string, { name: string, desc: string }>>({
-    en: { name: '', desc: '' }, zh: { name: '', desc: '' }, vi: { name: '', desc: '' }, ph: { name: '', desc: '' },
-  });
-
-  React.useEffect(() => {
-    if (editModal || viewModal) {
-      const item = editModal || viewModal;
-      if (item) setCategoryDataByLang(item.langData || emptyLangData());
-    } else {
-      setCategoryDataByLang(emptyLangData());
-    }
-  }, [editModal, viewModal]);
+  const getCount = (cat: Category) => categoryCountMap[cat.id] || 0;
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(''), 3000);
   };
 
-  const handleAIGenerate = () => {
-    setShowAIToast(true);
-    const currentName = categoryDataByLang['en']?.name || 'Advertising Media';
-    const generatedData = { ...categoryDataByLang };
-    if (currentName.includes('Media')) {
-      generatedData['zh'] = { name: '广告耗材', desc: '各类广告喷绘、写真材料' };
-      generatedData['vi'] = { name: 'Vật liệu Quảng cáo', desc: 'Các loại vật liệu in ấn quảng cáo' };
-      generatedData['ph'] = { name: 'Advertising Media', desc: 'Iba\'t ibang materyales sa pag-print ng advertising' };
-    } else if (currentName.includes('Panel')) {
-      generatedData['zh'] = { name: '广告板材', desc: 'PVC发泡板、亚克力板等' };
-      generatedData['vi'] = { name: 'Tấm Quảng cáo', desc: 'Tấm formex, tấm mica, v.v.' };
-      generatedData['ph'] = { name: 'Advertising Panel', desc: 'PVC foam board, acrylic board, atbp.' };
-    } else if (currentName.includes('Stand')) {
-      generatedData['zh'] = { name: '展示器材', desc: '易拉宝、X展架、促销台等' };
-      generatedData['vi'] = { name: 'Thiết bị Trưng bày', desc: 'Standee cuốn, standee chữ X, quầy bán hàng, v.v.' };
-      generatedData['ph'] = { name: 'Display Stand', desc: 'Roll up stand, X banner stand, promotion counter, atbp.' };
-    } else {
-      generatedData['zh'] = { name: '配件', desc: '各类广告制作相关配件' };
-      generatedData['vi'] = { name: 'Phụ kiện', desc: 'Các loại phụ kiện sản xuất quảng cáo' };
-      generatedData['ph'] = { name: 'Accessories', desc: 'Iba\'t ibang accessories para sa paggawa ng advertising' };
-    }
-    setCategoryDataByLang(generatedData);
-    setTimeout(() => setShowAIToast(false), 4000);
-  };
-
-  // 保存：新建 POST /api/categories，更新 PUT /api/categories/:id
   const handleSave = async () => {
     if (!editModal) return;
-    const enName = categoryDataByLang['en']?.name || '';
-    if (!enName) { showToast('请填写英文名称'); return; }
+    if (!editName.trim()) { showToast('请填写英文名称'); return; }
 
-    const payload = componentToApiPayload({
-      ...editModal,
-      langData: categoryDataByLang,
-    });
+    const payload = {
+      name_en: editName.trim(),
+      desc_en: editDesc.trim(),
+    };
 
     try {
       let savedCat: any;
@@ -181,13 +120,12 @@ export default function Categories() {
         const newItem: Category = {
           _seqId: _nextSeq++,
           id: savedCat.id || String(Date.now()),
-          name: `${enName} (${categoryDataByLang.zh?.name || ''})`,
+          name: editName.trim(),
           count: 0,
-          desc: '',
-          langData: { ...categoryDataByLang },
+          desc: editDesc.trim(),
         };
         setCategories(prev => [...prev, newItem]);
-        setEditModal(newItem);
+        setEditModal(null);
         showToast('分类保存成功');
       } else {
         // 更新
@@ -197,15 +135,13 @@ export default function Categories() {
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error('Update failed');
-        savedCat = await res.json();
         const updated: Category = {
           ...editModal,
-          name: `${enName} (${categoryDataByLang.zh?.name || ''})`,
-          desc: categoryDataByLang.en?.desc || '',
-          langData: { ...categoryDataByLang },
+          name: editName.trim(),
+          desc: editDesc.trim(),
         };
         setCategories(prev => prev.map(c => c.id === editModal.id ? updated : c));
-        setEditModal(updated);
+        setEditModal(null);
         showToast('分类保存成功');
       }
     } catch (e: any) {
@@ -214,7 +150,6 @@ export default function Categories() {
     }
   };
 
-  // 删除：DELETE /api/categories/:id（同时删除该分类下的所有产品）
   const handleDelete = async () => {
     if (!deleteModal) return;
     try {
@@ -223,7 +158,6 @@ export default function Categories() {
       const result = await res.json();
       setCategories(prev => prev.filter(c => c.id !== deleteModal.id));
       setDeleteModal(null);
-      // 清除前端产品缓存，下次加载时从后端获取最新数据
       localStorage.removeItem('jinyu_material_products');
       const msg = result.deletedProducts > 0
         ? `分类 "${deleteModal.name}" 删除成功，同时删除了 ${result.deletedProducts} 个产品`
@@ -235,15 +169,7 @@ export default function Categories() {
     }
   };
 
-  // 新建分类时用的空模板（_seqId=0 表示新建）
-  const newCategoryTemplate: Category = {
-    _seqId: 0,
-    id: '',
-    name: '',
-    count: 0,
-    desc: '',
-    langData: emptyLangData(),
-  };
+  const newCategoryTemplate: Category = { _seqId: 0, id: '', name: '', count: 0, desc: '' };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -264,16 +190,6 @@ export default function Categories() {
           添加分类
         </button>
       </div>
-
-      {showAIToast && (
-        <div className="fixed top-4 right-4 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg flex items-center animate-in slide-in-from-top-4 z-[60]">
-          <Sparkles className="w-5 h-5 text-purple-400 mr-3" />
-          <div>
-            <p className="font-medium text-sm">AI 正在生成多语言草稿...</p>
-            <p className="text-xs text-gray-400 mt-0.5">请稍候，生成完成后请检查并保存。</p>
-          </div>
-        </div>
-      )}
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         {isLoading ? (
@@ -297,7 +213,6 @@ export default function Categories() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm font-bold text-gray-900">{cat.name}</div>
-                    <div className="text-xs text-gray-400 mt-0.5">{cat.langData.en?.name}</div>
                   </td>
                   <td className="px-6 py-4 text-xs font-mono text-gray-400">{cat.id}</td>
                   <td className="px-6 py-4">
@@ -335,37 +250,18 @@ export default function Categories() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="flex flex-col sm:flex-row border-b border-gray-100 bg-gray-50/50 sm:items-center justify-between px-2">
-              <div className="flex overflow-x-auto hide-scrollbar">
-                {[
-                  { id: 'en', label: 'English (EN)' },
-                  { id: 'zh', label: '中文 (ZH)' },
-                  { id: 'vi', label: 'Tiếng Việt (VI)' },
-                  { id: 'ph', label: 'Filipino (PH)' }
-                ].map(l => (
-                  <button
-                    key={l.id}
-                    onClick={() => setActiveLang(l.id)}
-                    className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeLang === l.id ? 'border-blue-600 text-blue-700 bg-white' : 'border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-100/50'}`}
-                  >
-                    {l.label}
-                  </button>
-                ))}
-              </div>
-            </div>
             <div className="p-6 space-y-4">
-              <div className="bg-blue-50 border border-blue-100 text-blue-800 text-sm px-4 py-2 rounded-lg flex items-start">
-                <div className="font-medium">
-                  当前正在查看 <span className="font-bold uppercase bg-blue-200 px-1.5 py-0.5 rounded text-blue-900 mx-1">{activeLang}</span> 语言版本。
-                </div>
-              </div>
               <div>
                 <p className="text-sm font-medium text-gray-500 mb-1">分类名称</p>
-                <p className="text-base font-semibold text-gray-900">{viewModal.langData[activeLang]?.name || viewModal.name}</p>
+                <p className="text-base font-semibold text-gray-900">{viewModal.name}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500 mb-1">描述</p>
-                <p className="text-base text-gray-900">{viewModal.langData[activeLang]?.desc || viewModal.desc || '-'}</p>
+                <p className="text-base text-gray-900">{viewModal.desc || '-'}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500 mb-1">ID</p>
+                <p className="text-sm font-mono text-gray-500">{viewModal.id}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500 mb-1">产品数量</p>
@@ -391,51 +287,24 @@ export default function Categories() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="border-b border-gray-100 bg-gray-50/50">
-              <div className="flex overflow-x-auto hide-scrollbar px-2">
-                {[
-                  { id: 'en', label: 'English (EN)' },
-                  { id: 'zh', label: '中文 (ZH)' },
-                  { id: 'vi', label: 'Tiếng Việt (VI)' },
-                  { id: 'ph', label: 'Filipino (PH)' }
-                ].map(l => (
-                  <button
-                    key={l.id}
-                    onClick={() => setActiveLang(l.id)}
-                    className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeLang === l.id ? 'border-blue-600 text-blue-700 bg-white' : 'border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-100/50'}`}
-                  >
-                    {l.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="px-6 py-3 border-b border-gray-100 bg-gray-50/30">
-              <button onClick={handleAIGenerate} className="flex items-center text-xs font-medium text-purple-700 hover:text-purple-800 bg-purple-100 hover:bg-purple-200 px-3 py-1.5 rounded-lg transition-colors">
-                <Sparkles className="w-3 h-3 mr-1" />
-                AI一键生成
-              </button>
-            </div>
             <div className="p-6 space-y-4">
-              <div className="bg-blue-50 border border-blue-100 text-blue-800 text-sm px-4 py-2 rounded-lg flex items-start">
-                <div className="font-medium">
-                  当前正在编辑 <span className="font-bold uppercase bg-blue-200 px-1.5 py-0.5 rounded text-blue-900 mx-1">{activeLang}</span> 语言版本。
-                </div>
-              </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-1.5">分类名称</label>
                 <input
                   type="text"
-                  value={categoryDataByLang[activeLang]?.name || ''}
-                  onChange={(e) => setCategoryDataByLang(prev => ({ ...prev, [activeLang]: { ...prev[activeLang], name: e.target.value } }))}
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="e.g. Advertising Media"
                   className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all"
                 />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-1.5">描述</label>
                 <textarea
-                  value={categoryDataByLang[activeLang]?.desc || ''}
-                  onChange={(e) => setCategoryDataByLang(prev => ({ ...prev, [activeLang]: { ...prev[activeLang], desc: e.target.value } }))}
+                  value={editDesc}
+                  onChange={(e) => setEditDesc(e.target.value)}
                   rows={3}
+                  placeholder="Optional description..."
                   className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all resize-none"
                 ></textarea>
               </div>
