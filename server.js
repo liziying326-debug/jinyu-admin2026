@@ -15,7 +15,7 @@ const DATA_DIR = join(__dirname, 'data');
 try { mkdirSync(DATA_DIR, { recursive: true }); } catch {}
 
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 3006;
 
 // 中间件
 app.use(cors());
@@ -241,6 +241,23 @@ app.get('/api/products', (req, res) => {
   const products = readDataFile('products.json', []);
   const lang = req.query.lang || 'en';
   res.json(products);
+});
+
+// 按 slug 查找产品（必须在 /:id 之前注册）
+app.get('/api/products/by-slug/:slug', (req, res) => {
+  const products = readDataFile('products.json', []);
+  const slug = req.params.slug;
+  // slug 匹配优先级：product.slug → 产品名称转化 slug
+  const normalize = s => (s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const product = products.find(p =>
+    (p.slug && normalize(p.slug) === normalize(slug)) ||
+    normalize(p.name || p.name_en || '') === normalize(slug)
+  );
+  if (product) {
+    res.json({ success: true, data: product });
+  } else {
+    res.status(404).json({ success: false, error: 'Product not found' });
+  }
 });
 
 // 获取单个产品
@@ -674,6 +691,66 @@ app.post('/api/settings', (req, res) => {
   const settings = req.body;
   writeDataFile('settings.json', settings);
   res.json({ success: true });
+});
+
+// ============ 社交媒体链接接口 ============
+
+// ============ 社交媒体链接接口 ============
+
+app.get('/api/social-links', (req, res) => {
+  const links = readDataFile('social-links.json', []);
+  res.json(links);
+});
+
+app.post('/api/social-links', (req, res) => {
+  try {
+    const links = readDataFile('social-links.json', []);
+    const { name, icon, url, sort_order, enabled } = req.body;
+    if (!name || !icon || !url) return res.status(400).json({ error: 'Missing name, icon, or url' });
+    const newId = links.length > 0 ? Math.max(...links.map(l => l.id || 0)) + 1 : 1;
+    const newLink = { id: newId, name, icon, url, sort_order: sort_order ?? newId, enabled: enabled !== false };
+    links.push(newLink);
+    writeDataFile('social-links.json', links);
+    res.json({ success: true, data: newLink });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.put('/api/social-links', (req, res) => {
+  try {
+    const links = Array.isArray(req.body) ? req.body : [req.body];
+    writeDataFile('social-links.json', links);
+    res.json({ success: true, data: links });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.put('/api/social-links/:id', (req, res) => {
+  try {
+    const links = readDataFile('social-links.json', []);
+    const id = parseInt(req.params.id);
+    const idx = links.findIndex(l => l.id === id);
+    if (idx === -1) return res.status(404).json({ error: 'Not found' });
+    links[idx] = { ...links[idx], ...req.body, id };
+    writeDataFile('social-links.json', links);
+    res.json({ success: true, data: links[idx] });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.delete('/api/social-links/:id', (req, res) => {
+  try {
+    let links = readDataFile('social-links.json', []);
+    const id = parseInt(req.params.id);
+    links = links.filter(l => l.id !== id);
+    writeDataFile('social-links.json', links);
+    res.json({ success: true });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // ============ 联系表单接口 ============

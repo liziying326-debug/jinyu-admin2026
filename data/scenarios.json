@@ -76,59 +76,6 @@
     ]
   },
   {
-    "id": 2,
-    "name": "Light Box",
-    "desc": "Illuminated advertising panels require materials with specific light diffusion, transparency, and print adhesion properties. Our acrylic sheets and back-lit PVC banner are engineered for consistent, even light transmission without hot spots.",
-    "slug": "light-box",
-    "image": "",
-    "images": [
-      "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=800&q=80"
-    ],
-    "langData": {
-      "en": {
-        "name": "Light Box",
-        "desc": "Illuminated advertising panels require materials with specific light diffusion, transparency, and print adhesion properties. Our acrylic sheets and back-lit PVC banner are engineered for consistent, even light transmission without hot spots."
-      },
-      "zh": {
-        "name": "",
-        "desc": ""
-      },
-      "vi": {
-        "name": "",
-        "desc": ""
-      },
-      "ph": {
-        "name": "",
-        "desc": ""
-      }
-    },
-    "materials": [
-      {
-        "id": "one-way-vision",
-        "name": "One Way Vision ",
-        "desc": "one way vision material is typically applied for indoor and outdoor signage and wide-format digital printing such as vehicle advertising, irregular planes, and outdoor durable signage and product labels, especially for one-way vision window films.",
-        "langData": {
-          "en": {
-            "name": "One Way Vision ",
-            "desc": "one way vision material is typically applied for indoor and outdoor signage and wide-format digital printing such as vehicle advertising, irregular planes, and outdoor durable signage and product labels, especially for one-way vision window films."
-          },
-          "zh": {
-            "name": "",
-            "desc": ""
-          },
-          "vi": {
-            "name": "",
-            "desc": ""
-          },
-          "ph": {
-            "name": "",
-            "desc": ""
-          }
-        }
-      }
-    ]
-  },
-  {
     "id": 3,
     "slug": "digital-printing",
     "images": [

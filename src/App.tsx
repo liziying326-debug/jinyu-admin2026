@@ -15,6 +15,7 @@ import Company from './pages/Company';
 import News from './pages/News';
 import FAQ from './pages/FAQ';
 import Account from './pages/Account';
+import SocialLinks from './pages/SocialLinks';
 import Login from './pages/Login';
 import { authApi } from './api';
 
@@ -210,6 +211,7 @@ export default function App() {
       { id: 'news', label: '新闻管理', keywords: '新闻 news 博客 blog 文章 资讯' },
       { id: 'faq', label: 'FAQ管理', keywords: 'faq 问题 常见 问答 help' },
       { id: 'company', label: '公司介绍', keywords: '公司 company 关于 about 简介' },
+      { id: 'social-links', label: '社交媒体', keywords: '社交媒体 social link 图标 社交 链接 facebook instagram' },
       { id: 'account', label: '账号管理', keywords: '账号 account 密码 用户 管理' },
     ];
     for (const m of menuItems) {
@@ -288,6 +290,8 @@ export default function App() {
         return <FAQ />;
       case 'account':
         return <Account currentUser={currentUser} />;
+      case 'social-links':
+        return <SocialLinks />;
       default:
         return <Dashboard />;
     }

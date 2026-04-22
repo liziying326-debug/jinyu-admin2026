@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   LayoutDashboard, Package, Layers, Briefcase, 
   Image as ImageIcon, Building2, Newspaper, Menu, Bell, Search,
-  Languages, HelpCircle, LogOut, UserCog, X, ArrowRight
+  Languages, HelpCircle, LogOut, UserCog, X, ArrowRight, Share2
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -19,7 +19,26 @@ interface LayoutProps {
 
 export default function Layout({ children, activeTab, setActiveTab, currentUser, onLogout, onGlobalSearch, searchResults, searchQuery, onSearchQueryChange }: LayoutProps) {
   const [showSearch, setShowSearch] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  // 获取未读询盘数量
+  useEffect(() => {
+    fetchUnreadCount();
+    // 每 30 秒刷新一次
+    const timer = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(timer);
+  }, []);
+
+  async function fetchUnreadCount() {
+    try {
+      const res = await fetch('/api/contacts');
+      if (!res.ok) return;
+      const data = await res.json();
+      const list = Array.isArray(data) ? data : [];
+      setUnreadCount(list.filter((c: any) => !c.isRead).length);
+    } catch {}
+  }
 
   const navItems = [
     { id: 'dashboard', label: '控制台', icon: LayoutDashboard },
@@ -31,6 +50,7 @@ export default function Layout({ children, activeTab, setActiveTab, currentUser,
     { id: 'news', label: '新闻管理', icon: Newspaper },
     { id: 'faq', label: 'FAQ管理', icon: HelpCircle },
     { id: 'company', label: '公司介绍', icon: Building2 },
+    { id: 'social-links', label: '社交媒体', icon: Share2 },
   ];
 
   // 点击外部关闭搜索下拉
@@ -200,9 +220,19 @@ export default function Layout({ children, activeTab, setActiveTab, currentUser,
             </div>
           </div>
           <div className="flex items-center space-x-6">
-            <button className="text-gray-400 hover:text-gray-600 relative transition-colors">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className="text-gray-400 hover:text-gray-600 relative transition-colors"
+              title={`${unreadCount} 条未读询盘`}
+            >
               <Bell className="w-5 h-5" />
-              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+              {unreadCount > 0 ? (
+                <span className="absolute -top-1.5 -right-2.5 bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              ) : (
+                <span className="absolute top-0 right-0 w-2 h-2 bg-gray-300 rounded-full border-2 border-white"></span>
+              )}
             </button>
           </div>
         </header>
